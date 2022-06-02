@@ -1,5 +1,5 @@
 import { MantineProvider, NumberInput } from '@mantine/core';
-import { useDebouncedValue, useHotkeys } from '@mantine/hooks';
+import { useHotkeys } from '@mantine/hooks';
 import { ModalsProvider } from '@mantine/modals';
 import {
 	NotificationsProvider,
@@ -21,10 +21,9 @@ type Field = {
 const App = () => {
 	const [fields, setFields] = useState<Field[]>([]);
 	const [editField, setEditField] = useState<Field>();
+	const [fieldIndex, setFieldIndex] = useState(0);
 
 	const guiDiv = useRef<HTMLDivElement>();
-
-	let fieldIndex = 0;
 
 	const deleteSelected = () => {
 		const selected = fields.filter((f) => f.selected);
@@ -289,15 +288,15 @@ const App = () => {
 
 									if (!e.shiftKey) return;
 
-									fieldIndex++;
+									setFieldIndex(fieldIndex + 1);
 
 									const field: Field = {
 										x: e.clientX - guiDiv.current.offsetLeft,
 										y: e.clientY - guiDiv.current.offsetTop,
-										name: `field ${fieldIndex}`,
+										name: `field ${fieldIndex + 1}`,
 										selected: true,
 										highlighted: false,
-										id: fieldIndex,
+										id: fieldIndex + 1,
 										size: 100,
 									};
 

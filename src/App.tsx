@@ -1,4 +1,4 @@
-import { MantineProvider, TextInput as NumberInput } from '@mantine/core';
+import { MantineProvider, NumberInput } from '@mantine/core';
 import { useDebouncedValue, useHotkeys } from '@mantine/hooks';
 import { ModalsProvider } from '@mantine/modals';
 import {
@@ -30,6 +30,7 @@ const App = () => {
 		selected.forEach((f) => {
 			fields.splice(fields.indexOf(f), 1);
 		});
+		setFields(fields);
 		showNotification({
 			message: `Deleted ${selected.length} element${
 				selected.length == 1 ? '' : 's'
@@ -325,21 +326,13 @@ const App = () => {
 						{editField ? (
 							<div>
 								<h1 className='text-2xl'>Edit {editField.name}</h1>
-								<hr />
+								<hr className='my-6 opacity-50' />
 								<p className='text-xl'>Position:</p>
 								<NumberInput
 									defaultValue={editField.x}
 									onChange={(e) => {
-										if (e.currentTarget.value.length < 1) return;
-										e.currentTarget.value = `${e.currentTarget.value.replace(
-											/[^0-9]/g,
-											'',
-										)}`;
-										if (
-											parseInt(e.currentTarget.value) >
-											guiDiv.current.offsetWidth
-										) {
-											e.currentTarget.value = `${guiDiv.current.offsetWidth}`;
+										if (e > guiDiv.current.offsetWidth - editField.size) {
+											e = guiDiv.current.offsetWidth - editField.size;
 										}
 									}}
 									onBlur={(e) => {
@@ -360,16 +353,8 @@ const App = () => {
 								<NumberInput
 									defaultValue={editField.y}
 									onChange={(e) => {
-										if (e.currentTarget.value.length < 1) return;
-										e.currentTarget.value = `${e.currentTarget.value.replace(
-											/[^0-9]/g,
-											'',
-										)}`;
-										if (
-											parseInt(e.currentTarget.value) >
-											guiDiv.current.offsetHeight
-										) {
-											e.currentTarget.value = `${guiDiv.current.offsetHeight}`;
+										if (e > guiDiv.current.offsetHeight - editField.size) {
+											e = guiDiv.current.offsetHeight - editField.size;
 										}
 									}}
 									onBlur={(e) => {
@@ -386,6 +371,27 @@ const App = () => {
 									}}
 									variant={'default'}
 									icon={<>y</>}
+								/>
+
+								<hr className='my-4 opacity-50' />
+
+								<p className='text-xl'>Size:</p>
+								<NumberInput
+									defaultValue={editField.size}
+									onBlur={(e) => {
+										const i = fields.indexOf(editField);
+										editField.size = parseInt(e.currentTarget.value);
+										setFields(
+											fields.map((f, index) => {
+												if (index == i) {
+													return editField;
+												}
+												return f;
+											}),
+										);
+									}}
+									variant={'default'}
+									rightSection={<>px</>}
 								/>
 							</div>
 						) : (

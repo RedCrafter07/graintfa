@@ -24,6 +24,8 @@ const App = () => {
 
 	const guiDiv = useRef<HTMLDivElement>();
 
+	let fieldIndex = 0;
+
 	const deleteSelected = () => {
 		const selected = fields.filter((f) => f.selected);
 		if (selected.length <= 0) return;
@@ -285,15 +287,17 @@ const App = () => {
 									];
 									console.log(offsetLeft, offsetTop, offsetWidth, offsetHeight);
 
-									if (!e.shiftKey == true) return;
+									if (!e.shiftKey) return;
+
+									fieldIndex++;
 
 									const field: Field = {
 										x: e.clientX - guiDiv.current.offsetLeft,
 										y: e.clientY - guiDiv.current.offsetTop,
-										name: `field ${fields.length + 1}`,
+										name: `field ${fieldIndex}`,
 										selected: true,
 										highlighted: false,
-										id: fields.length,
+										id: fieldIndex,
 										size: 100,
 									};
 

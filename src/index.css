@@ -5,3 +5,19 @@
 h1 {
 	@apply text-3xl;
 }
+
+.scrollbar::-webkit-scrollbar {
+    width: 20px;
+    height: 20px;
+  }
+
+.scrollbar::-webkit-scrollbar-track {
+    @apply bg-gray-800;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-500 bg-opacity-50 hover:bg-opacity-75;
+}
+.scrollbar::-webkit-scrollbar-corner {
+	@apply bg-gray-900;
+}

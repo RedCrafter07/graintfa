@@ -1,6 +1,6 @@
 {
-	"name": "electron-ts-react-template",
-	"productName": "electron-ts-react-template",
+	"name": "gui-designer",
+	"productName": "gui-designer",
 	"version": "1.0.0",
 	"description": "My Electron application description",
 	"main": ".webpack/main",

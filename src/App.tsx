@@ -1,5 +1,11 @@
-import { MantineProvider, NumberInput, Slider } from '@mantine/core';
-import { useHotkeys, useMouse } from '@mantine/hooks';
+import {
+	Kbd,
+	LoadingOverlay,
+	MantineProvider,
+	NumberInput,
+	Slider,
+} from '@mantine/core';
+import { useDocumentTitle, useHotkeys, useMouse } from '@mantine/hooks';
 import { ModalsProvider } from '@mantine/modals';
 import {
 	NotificationsProvider,
@@ -22,6 +28,10 @@ const App = () => {
 	const [fields, setFields] = useState<Field[]>([]);
 	const [editField, setEditField] = useState<Field>();
 	const [fieldIndex, setFieldIndex] = useState(0);
+	const [loadingOverlay, setLoadingOverlay] = useState(false);
+	const [file, setFile] = useState<string>(undefined);
+	const [docTitle, setDocTitle] = useState('Unknown - GUI Designer');
+	useDocumentTitle(docTitle);
 
 	const guiDiv = useRef<HTMLImageElement>();
 
@@ -171,6 +181,50 @@ const App = () => {
 				setEditField(undefined);
 			},
 		],
+		[
+			'mod+s',
+			() => {
+				setLoadingOverlay(true);
+				fetch('http://localhost:736/save', {
+					method: 'post',
+					headers: {
+						fields: JSON.stringify(fields),
+						fieldIndex: fieldIndex.toString(),
+						filePath: file,
+					},
+				})
+					.then((res) => res.json())
+					.then((res) => {
+						setLoadingOverlay(false);
+						const file: string = res.filePath;
+						setFile(res.filePath);
+						setDocTitle(`${file.split('\\').pop()} - GUI Designer`);
+					});
+			},
+		],
+		[
+			'mod+o',
+			() => {
+				setLoadingOverlay(true);
+				fetch('http://localhost:736/open', {
+					method: 'get',
+				})
+					.then((res) => res.json())
+					.then((res) => {
+						const resType: {
+							fieldIndex: number;
+							fields: Field[];
+							filePath: string;
+						} = res;
+
+						setFieldIndex(resType.fieldIndex);
+						setFields(resType.fields);
+						setFile(resType.filePath);
+						setDocTitle(`${resType.filePath.split('\\').pop()} - GUI Designer`);
+						setLoadingOverlay(false);
+					});
+			},
+		],
 	]);
 
 	const FieldText = (props: { name: string; id: number; field: Field }) => {
@@ -221,12 +275,6 @@ const App = () => {
 	const Field = (props: { field: Field; id: number }) => {
 		const { field: f, id } = props;
 
-		let subtract = 0;
-
-		if (f.selected || f.highlighted) {
-			subtract = 4;
-		}
-
 		return (
 			<img
 				src='./assets/minecraft_inv_field.png'
@@ -239,8 +287,8 @@ const App = () => {
 						: ''
 				} pointer-events-auto`}
 				style={{
-					top: `${f.y - subtract + guiDiv.current.offsetTop}px`,
-					left: `${f.x - subtract + guiDiv.current.offsetLeft}px`,
+					top: `${f.y + guiDiv.current.offsetTop}px`,
+					left: `${f.x + guiDiv.current.offsetLeft}px`,
 				}}
 				onClick={(e) => {
 					if (e.ctrlKey && e.altKey) {
@@ -275,16 +323,35 @@ const App = () => {
 			<div className='bg-gray-800 text-white w-screen min-h-screen'>
 				<div className='grid grid-cols-6 h-screen'>
 					<div className='fieldList bg-gray-800 col-span-1 w-full h-full overflow-x-visible overflow-y-auto scrollbar'>
-						{fields.map((f) => {
-							return (
-								<FieldText
-									name={f.name}
-									id={f.id}
-									field={f}
-									key={`field text ${f.id}`}
-								></FieldText>
-							);
-						})}
+						{fields.length > 0 ? (
+							<>
+								{fields.map((f) => {
+									return (
+										<FieldText
+											name={f.name}
+											id={f.id}
+											field={f}
+											key={`field text ${f.id}`}
+										></FieldText>
+									);
+								})}
+							</>
+						) : (
+							<div className='opacity-75 grid place-items-center h-full text-center'>
+								<div className='px-4'>
+									<h2 className='text-2xl'>No fields</h2>
+									<p>
+										There are no fields on the GUI. You can add some by
+										shift-clicking the GUI you want to add a field.
+									</p>
+									<p className='text-sm'>
+										<Kbd>Ctrl</Kbd>
+										<Kbd>Alt</Kbd>
+										<Kbd>S</Kbd> for hotkeys
+									</p>
+								</div>
+							</div>
+						)}
 					</div>
 					<div className='guiEditor bg-gray-900 col-span-4 w-full h-full overflow-x-scroll overflow-y-scroll relative scrollbar'>
 						<div className='h-full w-full grid place-items-center'>
@@ -309,8 +376,8 @@ const App = () => {
 									setFieldIndex(fieldIndex + 1);
 
 									const field: Field = {
-										x: mouseX,
-										y: mouseY,
+										x: Math.round(mouseX),
+										y: Math.round(mouseY),
 										name: `field ${fieldIndex + 1}`,
 										selected: true,
 										highlighted: false,
@@ -380,6 +447,10 @@ const App = () => {
 										);
 									}}
 									variant={'default'}
+									classNames={{
+										input: 'bg-black bg-opacity-25 rounded-md',
+										control: 'bg-black bg-opacity-25',
+									}}
 									icon={<>x</>}
 								/>
 								<NumberInput
@@ -406,6 +477,10 @@ const App = () => {
 										);
 									}}
 									variant={'default'}
+									classNames={{
+										input: 'bg-black bg-opacity-25 rounded-md',
+										control: 'bg-black bg-opacity-25',
+									}}
 									icon={<>y</>}
 								/>
 
@@ -416,15 +491,14 @@ const App = () => {
 									step={1}
 									min={100}
 									max={300}
-									label={(v) => `${v}%`}
+									label={(v) => `x${v / 100}`}
 									defaultValue={editField.size}
 									marks={[
-										{ value: 100, label: '100%' },
-										{ value: 150, label: '150%' },
-										{ value: 200, label: '200%' },
-										{ value: 250, label: '250%' },
-										{ value: 300, label: '300%' },
+										{ value: 100, label: 'x1' },
+										{ value: 200, label: 'x2' },
+										{ value: 300, label: 'x3' },
 									]}
+									color='cyan'
 									onChangeEnd={(e) => {
 										const i = fields.indexOf(editField);
 										editField.size = e;
@@ -455,9 +529,10 @@ const App = () => {
 	};
 
 	return (
-		<MantineProvider theme={{ colorScheme: 'dark' }}>
+		<MantineProvider theme={{ colorScheme: 'dark', loader: 'bars' }}>
 			<NotificationsProvider>
 				<ModalsProvider>
+					<LoadingOverlay visible={loadingOverlay} />
 					<Main />
 				</ModalsProvider>
 			</NotificationsProvider>

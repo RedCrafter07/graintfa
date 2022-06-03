@@ -1,5 +1,5 @@
-import { MantineProvider, NumberInput } from '@mantine/core';
-import { useHotkeys } from '@mantine/hooks';
+import { MantineProvider, NumberInput, Slider } from '@mantine/core';
+import { useHotkeys, useMouse } from '@mantine/hooks';
 import { ModalsProvider } from '@mantine/modals';
 import {
 	NotificationsProvider,
@@ -23,7 +23,7 @@ const App = () => {
 	const [editField, setEditField] = useState<Field>();
 	const [fieldIndex, setFieldIndex] = useState(0);
 
-	const guiDiv = useRef<HTMLDivElement>();
+	const guiDiv = useRef<HTMLImageElement>();
 
 	const deleteSelected = () => {
 		const selected = fields.filter((f) => f.selected);
@@ -31,7 +31,7 @@ const App = () => {
 		selected.forEach((f) => {
 			fields.splice(fields.indexOf(f), 1);
 		});
-		setFields(fields);
+		setFields(fields.map((f) => f));
 		showNotification({
 			message: `Deleted ${selected.length} element${
 				selected.length == 1 ? '' : 's'
@@ -54,43 +54,44 @@ const App = () => {
 			const i = fields.indexOf(f);
 			switch (direction) {
 				case 'down':
-					f.y += step;
+					if (
+						f.y + step >= 0 &&
+						f.y + step <= guiDiv.current.offsetHeight - f.size
+					)
+						f.y += step;
+					else f.y = guiDiv.current.offsetWidth - f.size;
 					break;
 				case 'up':
-					f.y -= step;
+					if (
+						f.y - step >= 0 &&
+						f.y - step <= guiDiv.current.offsetHeight - f.size
+					)
+						f.y -= step;
+					else f.y = 0;
 					break;
 				case 'left':
-					f.x -= step;
+					if (
+						f.x - step >= 0 &&
+						f.x - step <= guiDiv.current.offsetWidth - f.size
+					)
+						f.x -= step;
+					else f.x = 0;
+
 					break;
 				case 'right':
-					f.x += step;
+					if (
+						f.x + step >= 0 &&
+						f.x + step <= guiDiv.current.offsetWidth - f.size
+					)
+						f.x += step;
+					else f.x = guiDiv.current.offsetWidth - f.size;
 					break;
 			}
 
 			fields[i] = f;
 		});
 
-		setFields(
-			fields.map((f, i) => {
-				if (selected.find((f) => i == f.id)) {
-					switch (direction) {
-						case 'down':
-							f.y += step;
-							break;
-						case 'up':
-							f.y -= step;
-							break;
-						case 'left':
-							f.x -= step;
-							break;
-						case 'right':
-							f.x += step;
-							break;
-					}
-				}
-				return f;
-			}),
-		);
+		setFields(fields.map((f) => f));
 	};
 
 	useHotkeys([
@@ -152,6 +153,8 @@ const App = () => {
 					f.highlighted = false;
 					return f;
 				});
+
+				setFields(fields.map((f) => f));
 				setEditField(undefined);
 			},
 		],
@@ -163,6 +166,8 @@ const App = () => {
 					f.highlighted = false;
 					return f;
 				});
+
+				setFields(fields.map((f) => f));
 				setEditField(undefined);
 			},
 		],
@@ -182,22 +187,28 @@ const App = () => {
 						const to = Math.max(...selected.map((f) => f.id), id);
 						setFields(
 							fields.map((f, i) => {
-								if (i == id) f.selected = !f.selected;
+								if (f.id == id) f.selected = !f.selected;
 								if (i >= from && i <= to) f.selected = true;
 								f.highlighted = false;
 								return f;
 							}),
 						);
-					} else
-						setFields(
-							fields.map((f, i) => {
-								f.highlighted = false;
-								if (i == id) f.selected = !f.selected;
-								else if (!e.ctrlKey) f.selected = false;
+						setEditField(undefined);
+					} else {
+						const index = fields.indexOf(f);
 
-								return f;
-							}),
-						);
+						if (!f.selected) setEditField(fields[index]);
+						else setEditField(undefined);
+
+						if (!e.ctrlKey)
+							fields.forEach((f, i) => {
+								fields[i].selected = false;
+								fields[i].highlighted = false;
+							});
+						fields[index].selected = !f.selected;
+
+						setFields(fields.map((f) => f));
+					}
 				}}
 			>
 				{name}
@@ -232,25 +243,24 @@ const App = () => {
 				onClick={(e) => {
 					if (e.ctrlKey && e.altKey) {
 						fields.splice(id, 1);
+						setFields(fields.map((f) => f));
 						setEditField(undefined);
 						return;
 					}
 
-					console.log(e.currentTarget.width, e.currentTarget.height);
+					const index = fields.indexOf(f);
 
-					if (!f.selected) setEditField(fields[id]);
+					if (!f.selected) setEditField(fields[index]);
 					else setEditField(undefined);
 
-					setFields(
-						fields.map((f) => {
-							if (f.id == id) f.selected = f.selected == false;
-							else if (!e.ctrlKey) f.selected = false;
+					if (!e.ctrlKey)
+						fields.forEach((f, i) => {
+							fields[i].selected = false;
+							fields[i].highlighted = false;
+						});
+					fields[index].selected = !f.selected;
 
-							f.highlighted = false;
-
-							return f;
-						}),
-					);
+					setFields(fields.map((f) => f));
 				}}
 			/>
 		);
@@ -260,23 +270,21 @@ const App = () => {
 		return (
 			<div className='bg-gray-800 text-white w-screen min-h-screen'>
 				<div className='grid grid-cols-6 h-screen'>
-					<div className='fieldList bg-gray-800 col-span-1 w-full h-full'>
-						{fields.map((f, i) => {
+					<div className='fieldList bg-gray-800 col-span-1 w-full h-full overflow-x-visible overflow-y-auto'>
+						{fields.map((f) => {
 							return (
 								<FieldText
 									name={f.name}
-									id={i}
+									id={f.id}
 									field={f}
-									key={`field text ${i}`}
+									key={`field text ${f.id}`}
 								></FieldText>
 							);
 						})}
 					</div>
-					<div className='guiEditor bg-gray-900 col-span-4 w-full h-full'>
+					<div className='guiEditor bg-gray-900 col-span-4 w-full h-full overflow-x-scroll overflow-y-scroll relative'>
 						<div className='h-full w-full grid place-items-center'>
 							<div
-								ref={guiDiv}
-								className='w-[75%]'
 								onClick={(e) => {
 									const [offsetLeft, offsetTop, offsetWidth, offsetHeight] = [
 										guiDiv.current.offsetLeft,
@@ -284,15 +292,28 @@ const App = () => {
 										guiDiv.current.offsetWidth,
 										guiDiv.current.offsetHeight,
 									];
-									console.log(offsetLeft, offsetTop, offsetWidth, offsetHeight);
+									console.log(
+										offsetLeft,
+										offsetTop,
+										offsetWidth,
+										offsetHeight,
+										e.currentTarget.clientTop,
+									);
+
+									const boundingRect = e.currentTarget.getBoundingClientRect();
+
+									const [mouseX, mouseY] = [
+										e.clientX - boundingRect.left,
+										e.clientY - boundingRect.top,
+									];
 
 									if (!e.shiftKey) return;
 
 									setFieldIndex(fieldIndex + 1);
 
 									const field: Field = {
-										x: e.clientX - guiDiv.current.offsetLeft,
-										y: e.clientY - guiDiv.current.offsetTop,
+										x: mouseX,
+										y: mouseY,
 										name: `field ${fieldIndex + 1}`,
 										selected: true,
 										highlighted: false,
@@ -312,7 +333,14 @@ const App = () => {
 									setEditField(field);
 								}}
 							>
-								<img src='./assets/minecraft_inv_default.png' />
+								<img
+									ref={guiDiv}
+									src='./assets/minecraft_inv_default.png'
+									style={{
+										minWidth: '960px',
+										maxWidth: '960px',
+									}}
+								/>
 								<div className='absolute top-0 left-0 w-full h-full pointer-events-none'>
 									{fields.map((f, i) => (
 										<Field field={f} id={i} key={i}></Field>
@@ -322,9 +350,9 @@ const App = () => {
 						</div>
 					</div>
 					<div
-						className={`fieldProperties bg-gray-700 px-2 col-span-1 w-full h-full overflow-y ${
+						className={`fieldProperties bg-gray-700 px-6 col-span-1 w-full h-full overflow-y ${
 							!editField ? 'grid place-items-center' : ''
-						}`}
+						} overflow-x-hidden overflow-y-auto max-w-full`}
 					>
 						{editField ? (
 							<div>
@@ -333,14 +361,18 @@ const App = () => {
 								<p className='text-xl'>Position:</p>
 								<NumberInput
 									defaultValue={editField.x}
-									onChange={(e) => {
-										if (e > guiDiv.current.offsetWidth - editField.size) {
-											e = guiDiv.current.offsetWidth - editField.size;
-										}
-									}}
+									min={0}
+									max={guiDiv.current.offsetWidth - editField.size}
 									onBlur={(e) => {
 										const i = fields.indexOf(editField);
-										editField.x = parseInt(e.currentTarget.value);
+										const val = parseInt(e.currentTarget.value);
+										editField.x =
+											val >= 0 &&
+											val <= guiDiv.current.offsetWidth - editField.size
+												? val
+												: val < 0
+												? 0
+												: guiDiv.current.offsetWidth - editField.size;
 										setFields(
 											fields.map((f, index) => {
 												if (index == i) {
@@ -355,14 +387,18 @@ const App = () => {
 								/>
 								<NumberInput
 									defaultValue={editField.y}
-									onChange={(e) => {
-										if (e > guiDiv.current.offsetHeight - editField.size) {
-											e = guiDiv.current.offsetHeight - editField.size;
-										}
-									}}
+									min={0}
+									max={guiDiv.current.offsetHeight - editField.size}
 									onBlur={(e) => {
 										const i = fields.indexOf(editField);
-										editField.y = parseInt(e.currentTarget.value);
+										const val = parseInt(e.currentTarget.value);
+										editField.y =
+											val >= 0 &&
+											val <= guiDiv.current.offsetHeight - editField.size
+												? val
+												: val < 0
+												? 0
+												: guiDiv.current.offsetHeight - editField.size;
 										setFields(
 											fields.map((f, index) => {
 												if (index == i) {
@@ -379,23 +415,32 @@ const App = () => {
 								<hr className='my-4 opacity-50' />
 
 								<p className='text-xl'>Size:</p>
-								<NumberInput
+								<Slider
+									step={1}
+									min={100}
+									max={300}
+									label={(v) => `${v}%`}
 									defaultValue={editField.size}
-									onBlur={(e) => {
+									marks={[
+										{ value: 100, label: '100%' },
+										{ value: 150, label: '150%' },
+										{ value: 200, label: '200%' },
+										{ value: 250, label: '250%' },
+										{ value: 300, label: '300%' },
+									]}
+									onChangeEnd={(e) => {
 										const i = fields.indexOf(editField);
-										editField.size = parseInt(e.currentTarget.value);
+										editField.size = e;
 										setFields(
-											fields.map((f, index) => {
-												if (index == i) {
+											fields.map((f) => {
+												if (f.id == i) {
 													return editField;
 												}
 												return f;
 											}),
 										);
 									}}
-									variant={'default'}
-									rightSection={<>px</>}
-								/>
+								></Slider>
 							</div>
 						) : (
 							<div className='opacity-75 text-center'>

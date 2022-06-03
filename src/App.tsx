@@ -200,12 +200,14 @@ const App = () => {
 						if (!f.selected) setEditField(fields[index]);
 						else setEditField(undefined);
 
+						const selected = f.selected;
+
 						if (!e.ctrlKey)
 							fields.forEach((f, i) => {
 								fields[i].selected = false;
 								fields[i].highlighted = false;
 							});
-						fields[index].selected = !f.selected;
+						fields[index].selected = !selected;
 
 						setFields(fields.map((f) => f));
 					}
@@ -253,12 +255,14 @@ const App = () => {
 					if (!f.selected) setEditField(fields[index]);
 					else setEditField(undefined);
 
+					const selected = f.selected;
+
 					if (!e.ctrlKey)
 						fields.forEach((f, i) => {
 							fields[i].selected = false;
 							fields[i].highlighted = false;
 						});
-					fields[index].selected = !f.selected;
+					fields[index].selected = !selected;
 
 					setFields(fields.map((f) => f));
 				}}
@@ -270,7 +274,7 @@ const App = () => {
 		return (
 			<div className='bg-gray-800 text-white w-screen min-h-screen'>
 				<div className='grid grid-cols-6 h-screen'>
-					<div className='fieldList bg-gray-800 col-span-1 w-full h-full overflow-x-visible overflow-y-auto'>
+					<div className='fieldList bg-gray-800 col-span-1 w-full h-full overflow-x-visible overflow-y-auto scrollbar'>
 						{fields.map((f) => {
 							return (
 								<FieldText
@@ -282,7 +286,7 @@ const App = () => {
 							);
 						})}
 					</div>
-					<div className='guiEditor bg-gray-900 col-span-4 w-full h-full overflow-x-scroll overflow-y-scroll relative'>
+					<div className='guiEditor bg-gray-900 col-span-4 w-full h-full overflow-x-scroll overflow-y-scroll relative scrollbar'>
 						<div className='h-full w-full grid place-items-center'>
 							<div
 								onClick={(e) => {
@@ -292,13 +296,6 @@ const App = () => {
 										guiDiv.current.offsetWidth,
 										guiDiv.current.offsetHeight,
 									];
-									console.log(
-										offsetLeft,
-										offsetTop,
-										offsetWidth,
-										offsetHeight,
-										e.currentTarget.clientTop,
-									);
 
 									const boundingRect = e.currentTarget.getBoundingClientRect();
 

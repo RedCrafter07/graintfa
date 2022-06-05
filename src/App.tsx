@@ -3,7 +3,6 @@ import {
 	Button,
 	Divider,
 	Kbd,
-	Loader,
 	LoadingOverlay,
 	MantineProvider,
 	Menu,
@@ -12,7 +11,7 @@ import {
 	Switch,
 	Tooltip,
 } from '@mantine/core';
-import { useDocumentTitle, useHotkeys, useMouse } from '@mantine/hooks';
+import { useDocumentTitle, useHotkeys } from '@mantine/hooks';
 import { ModalsProvider, useModals } from '@mantine/modals';
 import {
 	NotificationsProvider,
@@ -32,7 +31,7 @@ import {
 	IconX,
 } from '@tabler/icons';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type Field = {
 	x: number;

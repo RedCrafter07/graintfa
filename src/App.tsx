@@ -724,7 +724,7 @@ const App = () => {
 			<p
 				className={`px-4 ${
 					f.highlighted || f.selected
-						? ''
+						? 'dark:bg-gray-600 bg-gray-300'
 						: 'hover:dark:bg-gray-600 hover:bg-gray-300'
 				}`}
 				onClick={(e) => {
@@ -781,7 +781,7 @@ const App = () => {
 				<img
 					ref={fieldImg}
 					draggable={false}
-					src='./assets/minecraft_inv_field.png'
+					src='../assets/minecraft_inv_field.png'
 					width={f.size}
 					className={`absolute top-0 left-0 ${
 						f.selected
@@ -912,7 +912,7 @@ const App = () => {
 								<img
 									ref={guiImg}
 									draggable={false}
-									src='./assets/minecraft_inv_default.png'
+									src='../assets/minecraft_inv_default.png'
 									style={{
 										minWidth: '960px',
 										maxWidth: '960px',
@@ -1537,11 +1537,11 @@ const App = () => {
 						className={`${!keepNavOpen ? 'cursor-pointer' : ''}`}
 					>
 						<img
-							src='./assets/logo_white.svg'
+							src='../assets/logo_white.svg'
 							className='h-12 w-12 hidden dark:inline'
 						/>
 						<img
-							src='./assets/logo_black.svg'
+							src='../assets/logo_black.svg'
 							className='h-12 w-12 inline dark:hidden'
 						/>
 						{!keepNavOpen ? (
@@ -1620,11 +1620,11 @@ const App = () => {
 			<div className='h-[calc(100vh-12rem/4)] w-full bg-gray-200 dark:bg-gray-900 overflow-hidden'>
 				<div className='titleBar h-8 w-full bg-slate-300 dark:bg-slate-700 flex flex-row justify-between text-black dark:text-white text-center'>
 					<img
-						src='./assets/logo_white.svg'
+						src='../assets/logo_white.svg'
 						className='h-8 w-8 hidden dark:inline opacity-50'
 					/>
 					<img
-						src='./assets/logo_black.svg'
+						src='../assets/logo_black.svg'
 						className='h-8 w-8 inline dark:hidden opacity-50'
 					/>
 					<div className='my-auto w-full title-bar-drag'>{docTitle}</div>

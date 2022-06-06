@@ -89,8 +89,12 @@ const server = express();
 server.use(cors());
 
 server.post('/save', async (req, res) => {
-	const { fields: f, fieldindex: fi, filepath: fn } = req.headers;
-	const fields: Field = JSON.parse(Array.isArray(f) ? f[0] : f);
+	const {
+		fields: f,
+		fieldindex: fi,
+		filepath: fn,
+	} = req.headers;
+	const fields: Field[] = JSON.parse(Array.isArray(f) ? f[0] : f);
 	const fieldIndex: number = parseInt(Array.isArray(fi) ? fi[0] : fi);
 	let filePath: string = Array.isArray(fn) ? fn[0] : fn;
 	log(fields, fieldIndex, filePath);

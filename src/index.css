@@ -31,3 +31,7 @@ h1 {
 .scrollbar::-webkit-scrollbar-corner {
 	@apply bg-gray-900;
 }
+
+.title-bar-drag {
+    -webkit-app-region: drag;
+}

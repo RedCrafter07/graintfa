@@ -1,3 +1,4 @@
+/* eslint-disable no-mixed-spaces-and-tabs */
 import {
 	Accordion,
 	Button,
@@ -7,8 +8,10 @@ import {
 	MantineProvider,
 	Menu,
 	NumberInput,
+	Select,
 	Slider,
 	Switch,
+	Tabs,
 	Tooltip,
 } from '@mantine/core';
 import { useDocumentTitle, useHotkeys } from '@mantine/hooks';
@@ -19,16 +22,26 @@ import {
 	updateNotification,
 } from '@mantine/notifications';
 import {
+	IconBoxMultiple,
+	IconBrush,
 	IconCheck,
 	IconChevronRight,
 	IconClipboard,
 	IconClock,
 	IconDeviceFloppy,
+	IconDots,
+	IconFile,
 	IconFileDownload,
 	IconFolder,
 	IconHome,
+	IconKeyboard,
+	IconLayoutNavbar,
+	IconLockOpen,
+	IconMinus,
 	IconPlus,
 	IconQuestionMark,
+	IconRefresh,
+	IconSettings,
 	IconTrashX,
 	IconX,
 } from '@tabler/icons';
@@ -61,6 +74,19 @@ const App = () => {
 	const [recent, setRecent] = useState<string[]>([]);
 	const [renderStart, setRenderStart] = useState(0);
 	const [renderEnd, setRenderEnd] = useState(0);
+	const [settings, setSettings] = useState<{
+		theme: 'light' | 'dark';
+		keepNavOpen: boolean;
+	}>(undefined);
+
+	useEffect(() => {
+		fetch('http://localhost:736/settings')
+			.then((res) => res.json())
+			.then((res) => {
+				setSettings(res);
+				0;
+			});
+	}, []);
 
 	const modals = useModals();
 
@@ -206,6 +232,11 @@ const App = () => {
 						transition='slide-up'
 						transitionDuration={400}
 						transitionTimingFunction='ease'
+						control={
+							<Button variant='outline' color='cyan'>
+								Render menu
+							</Button>
+						}
 					>
 						<Menu.Label>Render time</Menu.Label>
 						<Menu.Item icon={<IconClock />} disabled>
@@ -386,7 +417,7 @@ const App = () => {
 		}, 400);
 	};
 
-	const saveFile = () => {
+	const saveFile = (cb?: () => void) => {
 		setLoadingOverlay(true);
 		fetch('http://localhost:736/save', {
 			method: 'post',
@@ -409,13 +440,45 @@ const App = () => {
 					color: 'green',
 					icon: <IconDeviceFloppy />,
 				});
+				if (cb) cb();
 			});
 	};
 
-	useHotkeys([
-		[
-			'f2',
-			() => {
+	const openHomeScreen = () => {
+		if (screen != 'start')
+			askForClose(() => {
+				setLoadingOverlay(true);
+				window.location.reload();
+			});
+		else
+			showNotification({
+				message: "You're already on the start screen!",
+				color: 'red',
+			});
+	};
+
+	const hotkeys = [
+		{
+			hotkey: 'mod+alt+s',
+			title: 'Open Shortcuts',
+			group: 'General',
+			onPress: () => {
+				openHotkeys();
+			},
+		},
+		{
+			hotkey: 'mod+,',
+			title: 'Open Settings',
+			group: 'General',
+			onPress: () => {
+				openSettings();
+			},
+		},
+		{
+			hotkey: 'f2',
+			title: 'Rerender fields',
+			group: 'Editor',
+			onPress: () => {
 				if (screen != 'editor') {
 					showNotification({
 						title: 'U sure?',
@@ -433,66 +496,96 @@ const App = () => {
 					icon: <IconCheck />,
 				});
 			},
-		],
-		[
-			'f12',
-			() => {
+		},
+		{
+			hotkey: 'f12',
+			title: 'Render GUI',
+			group: 'Editor',
+			onPress: () => {
 				renderGUI();
 			},
-		],
-		['delete', deleteSelected],
-		['backspace', deleteSelected],
-		[
-			'arrowleft',
-			() => {
+		},
+		{
+			hotkey: 'delete',
+			title: 'Remove selected fields',
+			group: 'Editor',
+			onPress: deleteSelected,
+		},
+		{
+			hotkey: 'backspace',
+			group: 'Editor',
+			title: 'Remove selected fields',
+			onPress: deleteSelected,
+		},
+		{
+			hotkey: 'arrowleft',
+			title: 'Move selected fields left',
+			group: 'Editor',
+			onPress: () => {
 				moveSelected('left');
 			},
-		],
-		[
-			'arrowright',
-			() => {
+		},
+		{
+			hotkey: 'arrowright',
+			title: 'Move selected fields right',
+			group: 'Editor',
+			onPress: () => {
 				moveSelected('right');
 			},
-		],
-		[
-			'arrowup',
-			() => {
+		},
+		{
+			hotkey: 'arrowup',
+			title: 'Move selected fields up',
+			group: 'Editor',
+			onPress: () => {
 				moveSelected('up');
 			},
-		],
-		[
-			'arrowdown',
-			() => {
+		},
+		{
+			hotkey: 'arrowdown',
+			title: 'Move selected fields down',
+			group: 'Editor',
+			onPress: () => {
 				moveSelected('down');
 			},
-		],
-		[
-			'shift+arrowleft',
-			() => {
+		},
+		{
+			hotkey: 'shift+arrowleft',
+			title: 'Move selected fields left 10px',
+			group: 'Editor',
+			onPress: () => {
 				moveSelected('left', 10);
 			},
-		],
-		[
-			'shift+arrowright',
-			() => {
+		},
+		{
+			hotkey: 'shift+arrowright',
+			title: 'Move selected fields right 10px',
+			group: 'Editor',
+			onPress: () => {
 				moveSelected('right', 10);
 			},
-		],
-		[
-			'shift+arrowup',
-			() => {
+		},
+		{
+			hotkey: 'shift+arrowup',
+			title: 'Move selected fields up 10px',
+			group: 'Editor',
+			onPress: () => {
 				moveSelected('up', 10);
 			},
-		],
-		[
-			'shift+arrowdown',
-			() => {
+		},
+		{
+			hotkey: 'shift+arrowdown',
+			title: 'Move selected fields down 10px',
+			group: 'Editor',
+			onPress: () => {
 				moveSelected('down', 10);
 			},
-		],
-		[
-			'mod+a',
-			() => {
+		},
+		{
+			hotkey: 'mod+a',
+			title: 'Select all fields',
+			group: 'Editor',
+			onPress: () => {
 				fields.map((f) => {
 					f.selected = true;
 					f.highlighted = false;
@@ -502,10 +595,12 @@ const App = () => {
 				setFields(fields.map((f) => f));
 				setEditField(undefined);
 			},
-		],
-		[
-			'mod+d',
-			() => {
+		},
+		{
+			hotkey: 'mod+d',
+			title: 'Deselect all fields',
+			group: 'Editor',
+			onPress: () => {
 				fields.map((f) => {
 					f.selected = false;
 					f.highlighted = false;
@@ -515,28 +610,123 @@ const App = () => {
 				setFields(fields.map((f) => f));
 				setEditField(undefined);
 			},
-		],
-		[
-			'mod+s',
-			() => {
+		},
+		{
+			hotkey: 'mod+s',
+			title: 'Save file',
+			group: 'File',
+			onPress: () => {
 				saveFile();
 			},
-		],
-		[
-			'mod+o',
-			() => {
+		},
+		{
+			hotkey: 'mod+o',
+			title: 'Open file',
+			group: 'File',
+			onPress: () => {
 				openFile();
 			},
-		],
-	]);
+		},
+		{
+			hotkey: 'mod+h',
+			title: 'Home screen',
+			group: 'Window',
+			onPress: () => {
+				openHomeScreen();
+			},
+		},
+		{
+			hotkey: 'mod+n',
+			title: 'New file',
+			group: 'File',
+			onPress: () => {
+				setScreen('editor');
+			},
+		},
+	];
+
+	const openHotkeys = () => {
+		const optimizeKeyName = (key: string) => {
+			switch (key) {
+				case 'mod':
+					key = 'Ctrl';
+					break;
+				case 'arrowup':
+					key = '⬆';
+					break;
+				case 'arrowdown':
+					key = '⬇';
+					break;
+				case 'arrowleft':
+					key = '⬅';
+					break;
+				case 'arrowright':
+					key = '➡';
+					break;
+				default:
+					{
+						const letters = key.split('');
+						letters[0] = letters[0].toUpperCase();
+						key = letters.join('');
+					}
+					break;
+			}
+			return key;
+		};
+
+		modals.openModal({
+			size: 'full',
+			children: (
+				<>
+					<h1>
+						<IconKeyboard className='inline my-auto mr-2' />
+						Hotkeys
+					</h1>
+					{Array.from(new Set(hotkeys.map((k) => k.group)).values()).map(
+						(g, i) => {
+							return (
+								<div key={`hotkey group ${i}`}>
+									<Divider my='xs' label={g} labelPosition='center' />
+									<div className='grid grid-cols-3 gap-4'>
+										{hotkeys
+											.filter((k) => k.group == g)
+											.map((k, i) => {
+												return (
+													<div key={`hotkey ${i}`}>
+														<p>{k.title}</p>
+
+														{k.hotkey.split('+').map((k, i) => {
+															k = optimizeKeyName(k);
+															return <Kbd key={i}>{k}</Kbd>;
+														})}
+													</div>
+												);
+											})}
+									</div>
+								</div>
+							);
+						},
+					)}
+				</>
+			),
+		});
+	};
+
+	useHotkeys(
+		hotkeys.map((k) => {
+			return [k.hotkey, k.onPress];
+		}),
+	);
 
 	const FieldText = (props: { name: string; id: number; field: Field }) => {
 		const { name, id, field: f } = props;
 		return (
 			<p
 				className={`px-4 ${
-					f.highlighted || f.selected ? '' : 'hover:'
-				}bg-gray-600`}
+					f.highlighted || f.selected
+						? ''
+						: 'hover:dark:bg-gray-600 hover:bg-gray-300'
+				}`}
 				onClick={(e) => {
 					if (e.shiftKey) {
 						const selected = fields.filter((f) => f.selected);
@@ -649,9 +839,9 @@ const App = () => {
 
 	const Main = () => {
 		return (
-			<div className='bg-gray-800 text-white w-screen min-h-[calc(100vh-12rem/4)]'>
+			<div className='bg-gray-200 dark:bg-gray-800 text-neutral-900 dark:text-white w-screen min-h-[calc(100vh-12rem/4)]'>
 				<div className='grid grid-cols-6 h-[calc(100vh-12rem/4)]'>
-					<div className='fieldList bg-gray-800 col-span-1 w-full h-[calc(100vh-12rem/4)] overflow-y-auto scrollbar'>
+					<div className='fieldList bg-gray-200 dark:bg-gray-800 col-span-1 w-full h-[calc(100vh-12rem/4)] overflow-y-auto scrollbar'>
 						{fields.length > 0 ? (
 							<>
 								{fields.map((f) => {
@@ -682,7 +872,7 @@ const App = () => {
 							</div>
 						)}
 					</div>
-					<div className='guiEditor bg-gray-900 col-span-4 w-full h-[calc(100vh-12rem/4)] overflow-x-scroll overflow-y-scroll relative scrollbar'>
+					<div className='guiEditor bg-gray-100 dark:bg-gray-900 col-span-4 w-full h-[calc(100vh-12rem/4)] overflow-x-scroll overflow-y-scroll relative scrollbar'>
 						<div className='h-[calc(100vh-12rem/4)] w-full grid place-items-center'>
 							<div
 								onClick={(e) => {
@@ -737,7 +927,7 @@ const App = () => {
 						</div>
 					</div>
 					<div
-						className={`fieldProperties bg-gray-700 px-6 col-span-1 w-full h-[calc(100vh-12rem/4)] overflow-y ${
+						className={`fieldProperties bg-gray-300 dark:bg-gray-700 px-6 col-span-1 w-full h-[calc(100vh-12rem/4)] overflow-y ${
 							!editField ? 'grid place-items-center' : ''
 						} overflow-x-hidden overflow-y-auto max-w-full`}
 					>
@@ -939,15 +1129,14 @@ const App = () => {
 			fetch('http://localhost:736/recent')
 				.then((res) => res.json())
 				.then((res) => {
-					console.log(res);
 					setRecent(res);
 				});
 		}, []);
 		return (
-			<div className='bg-gray-800 text-white w-screen min-h-[calc(100vh-12rem/4)] grid place-items-center'>
-				<div className='w-5/6 h-5/6 drop-shadow-lg'>
+			<div className='bg-gray-200 dark:bg-gray-800 text-neutral-900 dark:text-white w-screen min-h-[calc(100vh-12rem/4)] grid place-items-center'>
+				<div className='w-5/6 h-5/6 drop-shadow-lg mb-28'>
 					<div className='grid grid-cols-6 h-[calc(100vh-12rem/4)]'>
-						<div className='col-span-1 bg-gray-700 p-4 rounded-l-lg'>
+						<div className='col-span-1 bg-gray-100 dark:bg-gray-700 p-4 rounded-l-lg'>
 							<div
 								className='opacity-75 hover:opacity-100 transition-opacity duration-100 cursor-pointer'
 								onClick={() => {
@@ -959,8 +1148,9 @@ const App = () => {
 								<h1 className='text-2xl'>
 									<IconPlus className='inline' /> Create new
 								</h1>
-								<p>Create a new blank GUI file.</p>
+								<p>Create a new blank GUI file</p>
 							</div>
+							<div className='my-4'></div>
 							<div
 								className='opacity-75 hover:opacity-100 transition-opacity duration-100 cursor-pointer'
 								onClick={() => {
@@ -970,34 +1160,252 @@ const App = () => {
 								<h1 className='text-2xl'>
 									<IconFolder className='inline' /> Open
 								</h1>
-								<p>Open an existing Graintfa file.</p>
+								<p>Open an existing Graintfa file</p>
+							</div>
+							<div className='my-4'></div>
+							<div
+								className='opacity-75 hover:opacity-100 transition-opacity duration-100 cursor-pointer'
+								onClick={() => {
+									openSettings();
+								}}
+							>
+								<h1 className='text-2xl'>
+									<IconSettings className='inline' /> Settings
+								</h1>
+								<p>Set up stuff</p>
+							</div>
+							<div className='my-4'></div>
+							<div
+								className='opacity-75 hover:opacity-100 transition-opacity duration-100 cursor-pointer'
+								onClick={() => {
+									openHotkeys();
+								}}
+							>
+								<h1 className='text-2xl'>
+									<IconKeyboard className='inline' /> Hotkeys
+								</h1>
+								<p>View all keyboard shortcuts</p>
 							</div>
 						</div>
-						<div className='col-span-5 bg-gray-600 p-4 rounded-r-lg'>
+						<div className='col-span-5 bg-gray-200 dark:bg-gray-600 p-4 rounded-r-lg overflow-y-auto scrollbar'>
 							<h1 className='text-3xl'>Graintfa</h1>
 							<hr className='opacity-25 my-4' />
-							<div className='grid grid-cols-3 gap-4'>
-								{recent.reverse().map((f, i) => {
-									const fileName = f.split('\\').pop();
-									return (
-										<Tooltip label={f} withArrow color={'gray'} key={i}>
-											<p
-												className='px-4 py-2 bg-slate-800 bg-opacity-75 hover:bg-opacity-100 rounded-md transition-all duration-200 cursor-pointer'
-												onClick={() => {
-													openFile(f);
-												}}
-											>
-												{fileName}
-											</p>
-										</Tooltip>
-									);
-								})}
-							</div>
+							{recent.length > 0 ? (
+								<div className='grid grid-cols-3 gap-4'>
+									{recent.reverse().map((f, i) => {
+										const fileName = f.split('\\').pop();
+										return (
+											<Tooltip label={f} withArrow color={'gray'} key={i}>
+												<p
+													className='px-4 py-2 bg-gray-400 dark:bg-slate-800 opacity-75 hover:opacity-100 rounded-md transition-all duration-200 cursor-pointer'
+													onClick={() => {
+														openFile(f);
+													}}
+												>
+													{fileName}
+												</p>
+											</Tooltip>
+										);
+									})}
+								</div>
+							) : (
+								<div className='opacity-50 h-full text-center'>
+									<div>
+										<h2 className='text-2xl'>No recent files</h2>
+										<p>Why don't you create or open one?</p>
+									</div>
+								</div>
+							)}
 						</div>
 					</div>
 				</div>
 			</div>
 		);
+	};
+
+	const askForClose = (
+		f: () => void,
+		title = 'Are you sure you want to close?',
+		children = <>Unsaved changes will be lost!</>,
+	) => {
+		modals.openConfirmModal({
+			title: title,
+			children: children,
+			id: 'close',
+			labels: {
+				cancel: 'No',
+				confirm: 'Yes',
+			},
+			withCloseButton: false,
+			confirmProps: { color: 'green', variant: 'outline' },
+			cancelProps: { color: 'red', variant: 'outline' },
+			onConfirm() {
+				f();
+			},
+		});
+	};
+
+	const askForSave = () => {
+		askForClose(
+			() => {
+				window.location.reload();
+			},
+			'Reload?',
+			<>
+				Graintfa needs to reload to apply all changes. Unsaved changes will be
+				lost. Do you want to continue? You can also reload manually.
+			</>,
+		);
+	};
+
+	const askForOpen = () => {
+		if (screen == 'start') return openFile();
+		askForClose(
+			() => {
+				openFile();
+			},
+			'Open file?',
+			<>Unsaved changes will be lost.</>,
+		);
+	};
+
+	const askForReload = () => {
+		if (screen == 'start') return window.location.reload();
+		askForClose(
+			() => {
+				window.location.reload();
+			},
+			'Reload?',
+			<>Unsaved changes will be lost.</>,
+		);
+	};
+
+	const fetchSettings = () => {
+		fetch('http://localhost:736/settings')
+			.then((res) => res.json())
+			.then((res) => {
+				setSettings(res);
+			});
+	};
+
+	const openSettings = () => {
+		fetchSettings();
+		modals.openModal({
+			id: 'settings',
+			size: 'full',
+			title: 'Settings',
+			classNames: {
+				modal: 'h-3/4',
+			},
+			children: (
+				<Tabs
+					color='cyan'
+					orientation='vertical'
+					classNames={{ body: 'w-[90%]' }}
+					tabPadding='xl'
+				>
+					<Tabs.Tab label='General' icon={<IconDots />}>
+						<Divider
+							my='xs'
+							label={
+								<>
+									<IconBrush size={12} /> <p className='ml-2'>Theme</p>
+								</>
+							}
+							labelPosition='center'
+						/>
+
+						<Select
+							label='Theme'
+							defaultValue={settings.theme}
+							data={[
+								{ value: 'dark', label: 'Dark mode' },
+								{ value: 'light', label: 'Light mode' },
+							]}
+							onChange={(e) => {
+								setSettings((s) => {
+									if (e != 'light' && e != 'dark') return;
+									s.theme = e;
+									fetch('http://localhost:736/settings', {
+										method: 'post',
+										headers: {
+											settings: JSON.stringify(s),
+										},
+									});
+									return s;
+								});
+							}}
+						/>
+						<div className='my-2' />
+						<Button
+							color='green'
+							variant='outline'
+							onClick={() => {
+								askForSave();
+							}}
+						>
+							Apply
+						</Button>
+
+						<Divider
+							my='xs'
+							label={
+								<>
+									<IconFile size={12} /> <p className='ml-2'>Recent files</p>
+								</>
+							}
+							labelPosition='center'
+						/>
+
+						<Button
+							variant='outline'
+							onClick={() => {
+								fetch('http://localhost:736/recent/clear');
+								setRecent([]);
+								showNotification({
+									message: 'Cleared recent files!',
+									color: 'green',
+								});
+							}}
+						>
+							Clear recent files
+						</Button>
+					</Tabs.Tab>
+					<Tabs.Tab label='Nav' icon={<IconLayoutNavbar />}>
+						<Divider
+							my='xs'
+							label={
+								<>
+									<IconLockOpen size={12} /> <p className='ml-2'>Keep open</p>
+								</>
+							}
+							labelPosition='center'
+						/>
+						<Switch
+							label='Keep nav opened'
+							defaultChecked={
+								settings?.keepNavOpen != undefined
+									? settings.keepNavOpen
+									: false
+							}
+							onChange={(e) => {
+								const on = e.currentTarget.checked;
+								setSettings((s) => {
+									s.keepNavOpen = on;
+									fetch('http://localhost:736/settings', {
+										method: 'post',
+										headers: {
+											settings: JSON.stringify(s),
+										},
+									});
+									return s;
+								});
+							}}
+						/>
+					</Tabs.Tab>
+				</Tabs>
+			),
+		});
 	};
 
 	const screens = {
@@ -1006,55 +1414,73 @@ const App = () => {
 	};
 
 	const Nav = () => {
-		const [navOpened, setNavOpened] = useState(false);
+		const keepNavOpen =
+			settings?.keepNavOpen != undefined ? settings.keepNavOpen : false;
+
+		const [navOpened, setNavOpened] = useState(keepNavOpen);
+
+		const containerTransition: Transition = !keepNavOpen
+			? { staggerChildren: 0.1 }
+			: {};
 
 		const container: Variants = {
 			show: {
 				opacity: 1,
-				transition: {
-					staggerChildren: 0.1,
-				},
+				transition: containerTransition,
 			},
 			exit: {
-				transition: {
-					staggerChildren: 0.1,
-				},
+				transition: containerTransition,
 			},
 		};
 
-		const itemTransition: Transition = {
-			type: 'spring',
-			stiffness: 50,
-			mass: 0.75,
-		};
+		const itemTransition: Transition = !keepNavOpen
+			? {
+					type: 'spring',
+					stiffness: 50,
+					mass: 0.75,
+			  }
+			: {
+					duration: 0,
+					ease: 'linear',
+			  };
 
-		const item: Variants = {
-			hidden: { opacity: 0, y: 200 },
-			show: {
-				opacity: 1,
-				y: 0,
-				transition: itemTransition,
-			},
-			exit: { opacity: 0, y: 200, transition: itemTransition },
-		};
+		const item: Variants = !keepNavOpen
+			? {
+					hidden: { opacity: 0, y: 200 },
+					show: {
+						opacity: 1,
+						y: 0,
+						transition: itemTransition,
+					},
+					exit: { opacity: 0, y: 200, transition: itemTransition },
+			  }
+			: {
+					hidden: { opacity: 1, y: 0 },
+					show: {
+						opacity: 1,
+						y: 0,
+						transition: itemTransition,
+					},
+					exit: { opacity: 1, y: 0, transition: itemTransition },
+			  };
 
 		const controls: {
 			icon: ReactNode;
 			label: string;
 			disabled: boolean;
-			click: () => void;
+			click: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 		}[] = [
 			{
 				icon: <IconHome />,
-				label: 'Start screen',
+				label: 'Start screen (Ctrl+H)',
 				disabled: false,
 				click: () => {
-					window.location.reload();
+					openHomeScreen();
 				},
 			},
 			{
 				icon: <IconDeviceFloppy />,
-				label: 'Save',
+				label: 'Save (Ctrl+S)',
 				disabled: screen != 'editor',
 				click: () => {
 					saveFile();
@@ -1062,33 +1488,71 @@ const App = () => {
 			},
 			{
 				icon: <IconFolder />,
-				label: 'Open',
+				label: 'Open (Ctrl+O)',
 				disabled: false,
 				click: () => {
-					openFile();
+					askForOpen();
+				},
+			},
+			{
+				icon: <IconSettings />,
+				label: 'Settings (Ctrl+,)',
+				disabled: false,
+				click: () => {
+					openSettings();
+				},
+			},
+			{
+				icon: <IconRefresh />,
+				label: 'Refresh',
+				disabled: false,
+				click: () => {
+					askForReload();
+				},
+			},
+			{
+				icon: <IconKeyboard />,
+				label: 'Hotkeys (Ctrl+Alt+S)',
+				disabled: false,
+				click: () => {
+					openHotkeys();
 				},
 			},
 		];
 
 		return (
 			<div
-				className={`w-full h-12 bg-gray-700 fixed bottom-0 left-0 z-80 backdrop-blur-lg ${
-					navOpened ? 'opacity-100' : 'opacity-50 hover:opacity-100'
-				} transition-opacity duration-100 text-white group`}
+				className={`w-full h-12 bg-gray-400 dark:bg-gray-800 fixed bottom-0 left-0 z-80 backdrop-blur-lg ${
+					navOpened
+						? 'bg-gray-300 dark:bg-gray-700'
+						: 'hover:bg-gray-300 dark:hover:bg-gray-700'
+				} transition-opacity duration-100 text-neutral-900 dark:text-white group`}
 			>
 				<div className='w-full h-[calc(100vh-12rem/4)] flex flex-row gap-4'>
 					<div
 						onClick={() => {
+							if (keepNavOpen) return;
 							setNavOpened((o) => !o);
 						}}
-						className='cursor-pointer'
+						className={`${!keepNavOpen ? 'cursor-pointer' : ''}`}
 					>
-						<img src='./assets/logo_white.svg' className='h-12 w-12 inline' />
-						<IconChevronRight
-							className={`transition-all duration-200 ease-in-out my-auto inline ${
-								navOpened ? 'rotate-180' : 'opacity-0 group-hover:opacity-100'
-							}`}
+						<img
+							src='./assets/logo_white.svg'
+							className='h-12 w-12 hidden dark:inline'
 						/>
+						<img
+							src='./assets/logo_black.svg'
+							className='h-12 w-12 inline dark:hidden'
+						/>
+						{!keepNavOpen ? (
+							<IconChevronRight
+								className={`transition-all duration-200 ease-in-out my-auto inline ${
+									navOpened ? 'rotate-180' : 'opacity-0 group-hover:opacity-100'
+								}`}
+							/>
+						) : (
+							<></>
+						)}
 					</div>
 					<AnimatePresence>
 						{navOpened ? (
@@ -1105,9 +1569,9 @@ const App = () => {
 											key={i}
 											className='cursor-pointer'
 											label={c.label}
-											onClick={() => {
+											onClick={(e) => {
 												if (c.disabled) return;
-												c.click();
+												c.click(e);
 												setNavOpened(false);
 											}}
 											withArrow
@@ -1116,8 +1580,8 @@ const App = () => {
 												variants={item}
 												className={`w-12 h-12 ${
 													c.disabled
-														? 'opacity-50 text-neutral-400'
-														: 'hover:bg-gray-800'
+														? 'opacity-50 text-neutral-600 dark:text-neutral-400'
+														: 'hover:bg-gray-300 dark:hover:bg-gray-800'
 												} grid place-items-center transition-colors duration-100`}
 											>
 												{c.icon}
@@ -1130,10 +1594,6 @@ const App = () => {
 							''
 						)}
 					</AnimatePresence>
-					{/* <p>Test</p>
-						<p>Test</p>
-						<p>Test</p>
-						<p>Test</p> */}
 				</div>
 			</div>
 		);
@@ -1157,7 +1617,44 @@ const App = () => {
 				<></>
 			)}
 			<LoadingOverlay visible={loadingOverlay} zIndex={49} />
-			<div className='h-[calc(100vh-12rem/4)] w-full bg-gray-900 overflow-hidden'>
+			<div className='h-[calc(100vh-12rem/4)] w-full bg-gray-200 dark:bg-gray-900 overflow-hidden'>
+				<div className='titleBar h-8 w-full bg-slate-300 dark:bg-slate-700 flex flex-row justify-between text-black dark:text-white text-center'>
+					<img
+						src='./assets/logo_white.svg'
+						className='h-8 w-8 hidden dark:inline opacity-50'
+					/>
+					<img
+						src='./assets/logo_black.svg'
+						className='h-8 w-8 inline dark:hidden opacity-50'
+					/>
+					<div className='my-auto w-full title-bar-drag'>{docTitle}</div>
+					<div className='flex flex-row cursor-pointer'>
+						<div
+							className='h-full px-2 bg-white bg-opacity-0 hover:bg-opacity-25 transition-all duration-100'
+							onClick={() => {
+								fetch('http://localhost:736/program/minimize');
+							}}
+						>
+							<IconMinus className='my-auto h-full' />
+						</div>
+						{/* <div
+							className='h-full px-2 bg-white bg-opacity-0 hover:bg-opacity-25 transition-all duration-100'
+							onClick={() => {
+								fetch('http://localhost:736/program/maximize');
+							}}
+						>
+							<IconBoxMultiple className='my-auto h-full' />
+						</div> */}
+						<div
+							className='h-full px-2 bg-[#ff3434] bg-opacity-0 hover:bg-opacity-100 transition-all duration-100'
+							onClick={() => {
+								fetch('http://localhost:736/program/close');
+							}}
+						>
+							<IconX className='my-auto h-full' />
+						</div>
+					</div>
+				</div>
 				<AnimatePresence initial={false} exitBeforeEnter>
 					<motion.div
 						key={screen}
@@ -1178,13 +1675,25 @@ const App = () => {
 };
 
 const Wrappers = () => {
+	const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+
+	useEffect(() => {
+		fetch('http://localhost:736/theme')
+			.then((res) => res.json())
+			.then((res) => {
+				setTheme(res);
+			});
+	}, []);
+
 	return (
 		<MantineProvider
-			theme={{ colorScheme: 'dark', loader: 'bars', primaryColor: 'cyan' }}
+			theme={{ colorScheme: theme, loader: 'bars', primaryColor: 'cyan' }}
 		>
 			<ModalsProvider>
 				<NotificationsProvider>
-					<App></App>
+					<div className={theme}>
+						<App />
+					</div>
 				</NotificationsProvider>
 			</ModalsProvider>
 		</MantineProvider>

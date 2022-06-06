@@ -31,6 +31,8 @@ const createWindow = (): void => {
 		webPreferences: {
 			webSecurity: false,
 		},
+		frame: false,
+		roundedCorners: true,
 	});
 
 	win.maximize();
@@ -88,16 +90,25 @@ const server = express();
 
 server.use(cors());
 
+server.get('/program/close', (req, res) => {
+	app.quit();
+	res.status(200);
+});
+server.get('/program/maximize', (req, res) => {
+	if (win.isMaximized()) win.unmaximize();
+	else win.maximize();
+	res.status(200);
+});
+server.get('/program/minimize', (req, res) => {
+	win.minimize();
+	res.status(200);
+});
+
 server.post('/save', async (req, res) => {
-	const {
-		fields: f,
-		fieldindex: fi,
-		filepath: fn,
-	} = req.headers;
+	const { fields: f, fieldindex: fi, filepath: fn } = req.headers;
 	const fields: Field[] = JSON.parse(Array.isArray(f) ? f[0] : f);
 	const fieldIndex: number = parseInt(Array.isArray(fi) ? fi[0] : fi);
 	let filePath: string = Array.isArray(fn) ? fn[0] : fn;
-	log(fields, fieldIndex, filePath);
 
 	if (!filePath || filePath == undefined || filePath == 'undefined') {
 		filePath = await dialog.showSaveDialogSync(win, {
@@ -123,8 +134,6 @@ server.post('/save', async (req, res) => {
 
 	res.status(200).json({ filePath });
 
-	console.log('WRITTEN FILE!');
-
 	await addRecent(filePath);
 
 	setFilePath(filePath);
@@ -134,9 +143,6 @@ server.get('/open', async (req, res) => {
 	let filePath: string[] = Array.isArray(req.headers.filepath)
 		? req.headers.filepath
 		: [req.headers.filepath];
-
-	console.log(filePath);
-
 	if (!filePath || filePath.includes('undefined'))
 		filePath = await dialog.showOpenDialogSync(win, {
 			buttonLabel: 'Open',
@@ -199,15 +205,54 @@ server.get('/recent', async (req, res) => {
 		await db.push('/recent', []);
 	}
 
-	console.log(recent);
-
 	res.json(recent).status(200);
 
 	setState('In the main menu');
 });
 
+server.get('/recent/clear', async (req, res) => {
+	await db.push('/recent', []);
+	res.status(200);
+});
+
+const defaultSettings = [
+	{
+		path: '/settings/theme',
+		value: 'dark',
+	},
+	{
+		path: '/settings/keepNavOpen',
+		value: true,
+	},
+];
+
+server.get('/settings', async (req, res) => {
+	defaultSettings.forEach(async (s) => {
+		if (!db.exists(s.path)) await db.push(s.path, s.value);
+	});
+	const d = await db.getData('/settings');
+
+	res.status(200).json(d);
+});
+
+server.post('/settings', async (req, res) => {
+	const s = JSON.parse(
+		Array.isArray(req.headers.settings)
+			? req.headers.settings[0]
+			: req.headers.settings,
+	);
+	db.push('/settings', s);
+	res.status(200);
+});
+
+server.get('/theme', async (req, res) => {
+	if (!db.exists('/settings/theme')) await db.push('/settings/theme', 'dark');
+	const theme = await db.getData('/settings/theme');
+
+	res.status(200).json(theme);
+});
+
 async function addRecent(filePath: string) {
-	console.log(filePath);
 	let recent: string[] = [];
 	try {
 		recent = await db.getData('/recent');

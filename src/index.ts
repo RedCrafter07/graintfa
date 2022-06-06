@@ -38,6 +38,8 @@ const createWindow = (): void => {
 	win.maximize();
 	win.show();
 
+	win.setMenu(null);
+
 	// and load the index.html of the app.
 	win.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 };

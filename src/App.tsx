@@ -20,18 +20,20 @@ import {
 } from '@mantine/notifications';
 import {
 	IconCheck,
+	IconChevronRight,
 	IconClipboard,
 	IconClock,
 	IconDeviceFloppy,
 	IconFileDownload,
 	IconFolder,
+	IconHome,
 	IconPlus,
 	IconQuestionMark,
 	IconTrashX,
 	IconX,
 } from '@tabler/icons';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, Transition, Variants } from 'framer-motion';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 
 type Field = {
 	x: number;
@@ -62,9 +64,9 @@ const App = () => {
 
 	const modals = useModals();
 
-	const setFields = (fields: Field[]) => {
-		setFieldsClean(fields);
+	const setFields = (newFields: Field[]) => {
 		setDocTitle((t) => (!t.startsWith('*') ? `*${t}` : t));
+		setFieldsClean(newFields);
 	};
 
 	useDocumentTitle(docTitle);
@@ -384,6 +386,32 @@ const App = () => {
 		}, 400);
 	};
 
+	const saveFile = () => {
+		setLoadingOverlay(true);
+		fetch('http://localhost:736/save', {
+			method: 'post',
+			headers: {
+				fields: JSON.stringify(fields),
+				fieldIndex: fieldIndex.toString(),
+				filePath: file,
+			},
+		})
+			.then((res) => res.json())
+			.then((res) => {
+				setLoadingOverlay(false);
+				const file: string = res.filePath;
+				setFile(file);
+				setDocTitle(`${file.split('\\').pop()} - Graintfa`);
+
+				showNotification({
+					title: 'File saved!',
+					message: `Saved ${file.split('\\').pop()} to ${file}.`,
+					color: 'green',
+					icon: <IconDeviceFloppy />,
+				});
+			});
+	};
+
 	useHotkeys([
 		[
 			'f2',
@@ -491,28 +519,7 @@ const App = () => {
 		[
 			'mod+s',
 			() => {
-				setLoadingOverlay(true);
-				fetch('http://localhost:736/save', {
-					method: 'post',
-					headers: {
-						fields: JSON.stringify(fields),
-						fieldIndex: fieldIndex.toString(),
-						filePath: file,
-					},
-				})
-					.then((res) => res.json())
-					.then((res) => {
-						setLoadingOverlay(false);
-						const file: string = res.filePath;
-						setFile(file);
-						setDocTitle(`${file.split('\\').pop()} - Graintfa`);
-						showNotification({
-							title: 'File saved!',
-							message: `Saved ${file.split('\\').pop()} to ${file}.`,
-							color: 'green',
-							icon: <IconDeviceFloppy />,
-						});
-					});
+				saveFile();
 			},
 		],
 		[
@@ -642,9 +649,9 @@ const App = () => {
 
 	const Main = () => {
 		return (
-			<div className='bg-gray-800 text-white w-screen min-h-screen'>
-				<div className='grid grid-cols-6 h-screen'>
-					<div className='fieldList bg-gray-800 col-span-1 w-full h-full overflow-x-visible overflow-y-auto scrollbar'>
+			<div className='bg-gray-800 text-white w-screen min-h-[calc(100vh-12rem/4)]'>
+				<div className='grid grid-cols-6 h-[calc(100vh-12rem/4)]'>
+					<div className='fieldList bg-gray-800 col-span-1 w-full h-[calc(100vh-12rem/4)] overflow-y-auto scrollbar'>
 						{fields.length > 0 ? (
 							<>
 								{fields.map((f) => {
@@ -659,7 +666,7 @@ const App = () => {
 								})}
 							</>
 						) : (
-							<div className='opacity-75 grid place-items-center h-full text-center'>
+							<div className='opacity-75 grid place-items-center h-[calc(100vh-12rem/4)] text-center'>
 								<div className='px-4'>
 									<h2 className='text-2xl'>No fields</h2>
 									<p>
@@ -675,8 +682,8 @@ const App = () => {
 							</div>
 						)}
 					</div>
-					<div className='guiEditor bg-gray-900 col-span-4 w-full h-full overflow-x-scroll overflow-y-scroll relative scrollbar'>
-						<div className='h-full w-full grid place-items-center'>
+					<div className='guiEditor bg-gray-900 col-span-4 w-full h-[calc(100vh-12rem/4)] overflow-x-scroll overflow-y-scroll relative scrollbar'>
+						<div className='h-[calc(100vh-12rem/4)] w-full grid place-items-center'>
 							<div
 								onClick={(e) => {
 									const boundingRect = e.currentTarget.getBoundingClientRect();
@@ -721,7 +728,7 @@ const App = () => {
 										maxWidth: '960px',
 									}}
 								/>
-								<div className='absolute top-0 left-0 w-full h-full pointer-events-none'>
+								<div className='absolute top-0 left-0 w-full h-[calc(100vh-12rem/4)] pointer-events-none'>
 									{fields.map((f, i) => (
 										<Field field={f} id={i} key={i}></Field>
 									))}
@@ -730,7 +737,7 @@ const App = () => {
 						</div>
 					</div>
 					<div
-						className={`fieldProperties bg-gray-700 px-6 col-span-1 w-full h-full overflow-y ${
+						className={`fieldProperties bg-gray-700 px-6 col-span-1 w-full h-[calc(100vh-12rem/4)] overflow-y ${
 							!editField ? 'grid place-items-center' : ''
 						} overflow-x-hidden overflow-y-auto max-w-full`}
 					>
@@ -937,9 +944,9 @@ const App = () => {
 				});
 		}, []);
 		return (
-			<div className='bg-gray-800 text-white w-screen min-h-screen grid place-items-center'>
+			<div className='bg-gray-800 text-white w-screen min-h-[calc(100vh-12rem/4)] grid place-items-center'>
 				<div className='w-5/6 h-5/6 drop-shadow-lg'>
-					<div className='grid grid-cols-6 h-full'>
+					<div className='grid grid-cols-6 h-[calc(100vh-12rem/4)]'>
 						<div className='col-span-1 bg-gray-700 p-4 rounded-l-lg'>
 							<div
 								className='opacity-75 hover:opacity-100 transition-opacity duration-100 cursor-pointer'
@@ -998,6 +1005,140 @@ const App = () => {
 		editor: Main(),
 	};
 
+	const Nav = () => {
+		const [navOpened, setNavOpened] = useState(false);
+
+		const container: Variants = {
+			show: {
+				opacity: 1,
+				transition: {
+					staggerChildren: 0.1,
+				},
+			},
+			exit: {
+				transition: {
+					staggerChildren: 0.1,
+				},
+			},
+		};
+
+		const itemTransition: Transition = {
+			type: 'spring',
+			stiffness: 50,
+			mass: 0.75,
+		};
+
+		const item: Variants = {
+			hidden: { opacity: 0, y: 200 },
+			show: {
+				opacity: 1,
+				y: 0,
+				transition: itemTransition,
+			},
+			exit: { opacity: 0, y: 200, transition: itemTransition },
+		};
+
+		const controls: {
+			icon: ReactNode;
+			label: string;
+			disabled: boolean;
+			click: () => void;
+		}[] = [
+			{
+				icon: <IconHome />,
+				label: 'Start screen',
+				disabled: false,
+				click: () => {
+					window.location.reload();
+				},
+			},
+			{
+				icon: <IconDeviceFloppy />,
+				label: 'Save',
+				disabled: screen != 'editor',
+				click: () => {
+					saveFile();
+				},
+			},
+			{
+				icon: <IconFolder />,
+				label: 'Open',
+				disabled: false,
+				click: () => {
+					openFile();
+				},
+			},
+		];
+
+		return (
+			<div
+				className={`w-full h-12 bg-gray-700 fixed bottom-0 left-0 z-80 backdrop-blur-lg ${
+					navOpened ? 'opacity-100' : 'opacity-50 hover:opacity-100'
+				} transition-opacity duration-100 text-white group`}
+			>
+				<div className='w-full h-[calc(100vh-12rem/4)] flex flex-row gap-4'>
+					<div
+						onClick={() => {
+							setNavOpened((o) => !o);
+						}}
+						className='cursor-pointer'
+					>
+						<img src='./assets/logo_white.svg' className='h-12 w-12 inline' />
+						<IconChevronRight
+							className={`transition-all duration-200 ease-in-out my-auto inline ${
+								navOpened ? 'rotate-180' : 'opacity-0 group-hover:opacity-100'
+							}`}
+						/>
+					</div>
+					<AnimatePresence>
+						{navOpened ? (
+							<motion.div
+								variants={container}
+								initial='hidden'
+								animate='show'
+								exit='exit'
+								className='flex flex-row'
+							>
+								{controls.map((c, i) => {
+									return (
+										<Tooltip
+											key={i}
+											className='cursor-pointer'
+											label={c.label}
+											onClick={() => {
+												if (c.disabled) return;
+												c.click();
+												setNavOpened(false);
+											}}
+											withArrow
+										>
+											<motion.div
+												variants={item}
+												className={`w-12 h-12 ${
+													c.disabled
+														? 'opacity-50 text-neutral-400'
+														: 'hover:bg-gray-800'
+												} grid place-items-center transition-colors duration-100`}
+											>
+												{c.icon}
+											</motion.div>
+										</Tooltip>
+									);
+								})}
+							</motion.div>
+						) : (
+							''
+						)}
+					</AnimatePresence>
+					{/* <p>Test</p>
+						<p>Test</p>
+						<p>Test</p>
+						<p>Test</p> */}
+				</div>
+			</div>
+		);
+	};
+
 	return (
 		<>
 			{loadingOverlay ? (
@@ -1016,7 +1157,7 @@ const App = () => {
 				<></>
 			)}
 			<LoadingOverlay visible={loadingOverlay} zIndex={49} />
-			<div className='min-h-screen w-full bg-gray-900 overflow-hidden'>
+			<div className='h-[calc(100vh-12rem/4)] w-full bg-gray-900 overflow-hidden'>
 				<AnimatePresence initial={false} exitBeforeEnter>
 					<motion.div
 						key={screen}
@@ -1030,6 +1171,7 @@ const App = () => {
 						{screens[screen]}
 					</motion.div>
 				</AnimatePresence>
+				<Nav />
 			</div>
 		</>
 	);

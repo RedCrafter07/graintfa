@@ -24,7 +24,8 @@
 				{
 					"name": "@electron-forge/maker-squirrel",
 					"config": {
-						"name": "electron_ts_react_template"
+						"name": "graintfa",
+						"iconUrl": "D:\\coding\\McGui\\src\\assets\\Graintfa.ico"
 					}
 				},
 				{

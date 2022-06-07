@@ -808,7 +808,7 @@ const App = () => {
               return (
                 <div key={`hotkey group ${i}`}>
                   <Divider my="xs" label={g} labelPosition="center" />
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     {hotkeys
                       .filter((k) => k.group == g)
                       .sort((a, b) => (a.title > b.title ? 1 : -1))

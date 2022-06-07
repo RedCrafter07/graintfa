@@ -12,9 +12,10 @@ import {
   Slider,
   Switch,
   Tabs,
+  TextInput,
   Tooltip,
 } from '@mantine/core';
-import { useDocumentTitle, useHotkeys } from '@mantine/hooks';
+import { useDocumentTitle, useHotkeys, useWindowEvent } from '@mantine/hooks';
 import { ModalsProvider, useModals } from '@mantine/modals';
 import {
   NotificationsProvider,
@@ -22,7 +23,6 @@ import {
   updateNotification,
 } from '@mantine/notifications';
 import {
-  IconBoxMultiple,
   IconBrush,
   IconCheck,
   IconChevronRight,
@@ -61,6 +61,7 @@ type Field = {
     path: string;
     saturation: boolean;
   };
+  rename: boolean;
 };
 
 const App = () => {
@@ -78,6 +79,7 @@ const App = () => {
     theme: 'light' | 'dark';
     keepNavOpen: boolean;
   }>(undefined);
+  const titleBar = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch('http://localhost:736/settings')
@@ -87,6 +89,13 @@ const App = () => {
         0;
       });
   }, []);
+
+  useWindowEvent('blur', () => {
+    titleBar.current.classList.add('opacity-50');
+  });
+  useWindowEvent('focus', () => {
+    titleBar.current.classList.remove('opacity-50');
+  });
 
   const modals = useModals();
 
@@ -98,6 +107,7 @@ const App = () => {
   useDocumentTitle(docTitle);
 
   const guiImg = useRef<HTMLImageElement>(null);
+  const guiEditor = useRef<HTMLDivElement>(null);
   const fieldImg = useRef<HTMLImageElement>(null);
 
   const deleteSelected = () => {
@@ -164,6 +174,10 @@ const App = () => {
       }
 
       fields[i] = f;
+
+      if (selected.length == 1) {
+        setEditField(f);
+      }
     });
 
     setFields(fields.map((f) => f));
@@ -402,6 +416,7 @@ const App = () => {
             resType.fields.map((x) => {
               x.selected = false;
               x.highlighted = false;
+              x.rename = false;
               return x;
             })
           );
@@ -417,14 +432,19 @@ const App = () => {
     }, 400);
   };
 
-  const saveFile = (cb?: () => void) => {
+  const saveFile = (filePath?: string, cb?: () => void) => {
     setLoadingOverlay(true);
     fetch('http://localhost:736/save', {
       method: 'post',
       headers: {
-        fields: JSON.stringify(fields),
+        fields: JSON.stringify(
+          fields.map((f) => {
+            f.rename = false;
+            return f;
+          })
+        ),
         fieldIndex: fieldIndex.toString(),
-        filePath: file,
+        filePath,
       },
     })
       .then((res) => res.json())
@@ -457,7 +477,74 @@ const App = () => {
       });
   };
 
-  const hotkeys = [
+  const hotkeys: {
+    hotkey: string;
+    title: string;
+    group: string;
+    onPress: () => void;
+  }[] = [
+    {
+      hotkey: 'mod+shift+s',
+      group: 'File',
+      title: 'Save As',
+      onPress() {
+        saveFile();
+      },
+    },
+    {
+      hotkey: 'mod+c',
+      group: 'Editor',
+      title: 'Clone selected fields',
+      onPress: () => {
+        const selectedFields = fields.filter((f) => f.selected);
+        const clonedFields: Field[] = [];
+
+        selectedFields.forEach((f) => {
+          const field: Field = {
+            x: f.x,
+            y: f.y,
+            name: `field ${fieldIndex + 1}`,
+            selected: true,
+            highlighted: false,
+            id: fieldIndex + 1,
+            size: 100,
+            rename: false,
+          };
+          clonedFields.push(field);
+        });
+
+        setFieldIndex((i) => i + 1);
+
+        setFields([
+          ...fields.map((f) => {
+            f.selected = false;
+            f.highlighted = false;
+            return f;
+          }),
+          ...clonedFields,
+        ]);
+      },
+    },
+    {
+      hotkey: 'mod+w',
+      title: 'Rename field',
+      group: 'Editor',
+      onPress: () => {
+        const selectedFields = fields.filter((f) => f.selected);
+
+        if (selectedFields.length > 1) return;
+
+        const field = fields.find((f) => f.id === selectedFields[0].id);
+
+        const i = fields.indexOf(field);
+
+        field.rename = true;
+
+        fields[i] = field;
+
+        setFields(fields.map((x) => x));
+      },
+    },
     {
       hotkey: 'mod+alt+s',
       title: 'Open Shortcuts',
@@ -582,6 +669,38 @@ const App = () => {
       },
     },
     {
+      hotkey: 'mod+shift+arrowleft',
+      title: 'Move selected fields left 100px',
+      group: 'Editor',
+      onPress: () => {
+        moveSelected('left', 100);
+      },
+    },
+    {
+      hotkey: 'mod+shift+arrowright',
+      title: 'Move selected fields right 100px',
+      group: 'Editor',
+      onPress: () => {
+        moveSelected('right', 100);
+      },
+    },
+    {
+      hotkey: 'mod+shift+arrowup',
+      title: 'Move selected fields up 100px',
+      group: 'Editor',
+      onPress: () => {
+        moveSelected('up', 100);
+      },
+    },
+    {
+      hotkey: 'mod+shift+arrowdown',
+      title: 'Move selected fields down 100px',
+      group: 'Editor',
+      onPress: () => {
+        moveSelected('down', 100);
+      },
+    },
+    {
       hotkey: 'mod+a',
       title: 'Select all fields',
       group: 'Editor',
@@ -616,7 +735,7 @@ const App = () => {
       title: 'Save file',
       group: 'File',
       onPress: () => {
-        saveFile();
+        saveFile(file);
       },
     },
     {
@@ -682,14 +801,17 @@ const App = () => {
             <IconKeyboard className="inline my-auto mr-2" />
             Hotkeys
           </h1>
-          {Array.from(new Set(hotkeys.map((k) => k.group)).values()).map(
-            (g, i) => {
+
+          {Array.from(new Set(hotkeys.map((k) => k.group)).values())
+            .sort((a, b) => (a > b ? 1 : -1))
+            .map((g, i) => {
               return (
                 <div key={`hotkey group ${i}`}>
                   <Divider my="xs" label={g} labelPosition="center" />
                   <div className="grid grid-cols-3 gap-4">
                     {hotkeys
                       .filter((k) => k.group == g)
+                      .sort((a, b) => (a.title > b.title ? 1 : -1))
                       .map((k, i) => {
                         return (
                           <div key={`hotkey ${i}`}>
@@ -705,8 +827,7 @@ const App = () => {
                   </div>
                 </div>
               );
-            }
-          )}
+            })}
         </>
       ),
     });
@@ -720,6 +841,41 @@ const App = () => {
 
   const FieldText = (props: { name: string; id: number; field: Field }) => {
     const { name, id, field: f } = props;
+    if (f.rename) {
+      const input = useRef<HTMLInputElement>(null);
+      useEffect(() => {
+        input.current.focus();
+      }, []);
+      return (
+        <TextInput
+          variant="unstyled"
+          defaultValue={f.name}
+          ref={input}
+          className="dark:bg-gray-600 bg-gray-300 px-4"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              if (e.currentTarget.value.length < 1) {
+                fields[fields.indexOf(f)].rename = false;
+                setFields(fields.map((x) => x));
+                return;
+              }
+              fields[fields.indexOf(f)].rename = false;
+              fields[fields.indexOf(f)].name = e.currentTarget.value;
+              setFields(fields.map((x) => x));
+              e.currentTarget.value;
+            }
+            if (e.key === 'Escape') {
+              fields[fields.indexOf(f)].rename = false;
+              setFields(fields.map((x) => x));
+            }
+          }}
+          onBlur={() => {
+            fields[fields.indexOf(f)].rename = false;
+            setFields(fields.map((x) => x));
+          }}
+        />
+      );
+    }
     return (
       <p
         className={`px-4 ${
@@ -780,7 +936,6 @@ const App = () => {
       >
         <img
           ref={fieldImg}
-          draggable={false}
           src="http://localhost:736/assets/minecraft_inv_field.png"
           width={f.size}
           className={`absolute top-0 left-0 ${
@@ -801,7 +956,7 @@ const App = () => {
             const index = fields.indexOf(f);
 
             if (!f.selected) setEditField(fields[index]);
-            else setEditField(undefined);
+            else if (f.selected && e.ctrlKey) setEditField(undefined);
 
             const selected = f.selected;
 
@@ -810,7 +965,7 @@ const App = () => {
                 fields[i].selected = false;
                 fields[i].highlighted = false;
               });
-            fields[index].selected = !selected;
+            fields[index].selected = e.ctrlKey ? !selected : true;
 
             setFields(fields.map((f) => f));
           }}
@@ -872,7 +1027,10 @@ const App = () => {
               </div>
             )}
           </div>
-          <div className="guiEditor bg-gray-100 dark:bg-gray-900 col-span-4 w-full h-[calc(100vh-12rem/4)] overflow-x-scroll overflow-y-scroll relative scrollbar">
+          <div
+            ref={guiEditor}
+            className="guiEditor bg-gray-100 dark:bg-gray-900 col-span-4 w-full h-[calc(100vh-12rem/4)] overflow-x-scroll overflow-y-scroll relative scrollbar"
+          >
             <div className="h-[calc(100vh-12rem/4)] w-full grid place-items-center">
               <div
                 onClick={(e) => {
@@ -883,7 +1041,33 @@ const App = () => {
                     e.clientY - boundingRect.top,
                   ];
 
-                  if (!e.shiftKey) return;
+                  if (!e.shiftKey) {
+                    let fieldClicked = false;
+                    fields.forEach((f) => {
+                      if (
+                        mouseX > f.x &&
+                        mouseX < f.x + f.size &&
+                        mouseY > f.y &&
+                        mouseY < f.y + f.size
+                      ) {
+                        fieldClicked = true;
+                        return;
+                      }
+                    });
+
+                    if (fieldClicked === false) {
+                      setEditField(undefined);
+                      setFields(
+                        fields.map((f) => {
+                          f.selected = false;
+                          f.highlighted = false;
+                          return f;
+                        })
+                      );
+                    }
+
+                    return;
+                  }
 
                   setFieldIndex(fieldIndex + 1);
 
@@ -895,6 +1079,7 @@ const App = () => {
                     highlighted: false,
                     id: fieldIndex + 1,
                     size: 100,
+                    rename: false,
                   };
 
                   setFields([
@@ -997,6 +1182,7 @@ const App = () => {
                   }}
                   icon={<>y</>}
                 />
+
                 <hr className="my-4 opacity-50" />
                 <p className="text-xl">Size:</p>
                 <Slider
@@ -1013,18 +1199,18 @@ const App = () => {
                   ]}
                   color="cyan"
                   /* onChangeEnd={(e) => {
-										const i = fields.indexOf(editField);
-										editField.size = e;
-										setFields(
-											fields.map((f) => {
-												if (f.id == i) {
-													return editField;
-												}
-												return f;
-											}),
-										);
-									}} */
-                ></Slider>
+                    const i = fields.indexOf(editField);
+                    editField.size = e;
+                    setFields(
+                      fields.map((f, index) => {
+                        if (index == i) {
+                          return editField;
+                        }
+                        return f;
+                      })
+                    );
+                  }} */
+                />
                 <hr className="my-6 opacity-50" />
                 <Accordion
                   styles={{
@@ -1120,6 +1306,7 @@ const App = () => {
             )}
           </div>
         </div>
+        <div className="absolute pointer-events-none top-0 left-0 w-full h-full"></div>
       </div>
     );
   };
@@ -1483,7 +1670,7 @@ const App = () => {
         label: 'Save (Ctrl+S)',
         disabled: screen != 'editor',
         click: () => {
-          saveFile();
+          saveFile(file);
         },
       },
       {
@@ -1618,7 +1805,10 @@ const App = () => {
       )}
       <LoadingOverlay visible={loadingOverlay} zIndex={49} />
       <div className="h-[calc(100vh-12rem/4)] w-full bg-gray-200 dark:bg-gray-900 overflow-hidden">
-        <div className="titleBar h-8 w-full bg-slate-300 dark:bg-slate-700 flex flex-row justify-between text-black dark:text-white text-center">
+        <div
+          className="titleBar h-8 w-full bg-slate-300 dark:bg-slate-700 flex flex-row justify-between text-black dark:text-white text-center"
+          ref={titleBar}
+        >
           <img
             src="http://localhost:736/assets/logo_white.svg"
             className="h-8 w-8 hidden dark:inline opacity-50"
@@ -1638,17 +1828,21 @@ const App = () => {
               <IconMinus className="my-auto h-full" />
             </div>
             {/* <div
-							className='h-full px-2 bg-white bg-opacity-0 hover:bg-opacity-25 transition-all duration-100'
-							onClick={() => {
-								fetch('http://localhost:736/program/maximize');
-							}}
-						>
-							<IconBoxMultiple className='my-auto h-full' />
-						</div> */}
+              className="h-full px-2 bg-white bg-opacity-0 hover:bg-opacity-25 transition-all duration-100"
+              onClick={() => {
+                fetch('http://localhost:736/program/maximize');
+              }}
+            >
+              <IconBoxMultiple className="my-auto h-full" />
+            </div> */}
             <div
               className="h-full px-2 bg-[#ff3434] bg-opacity-0 hover:bg-opacity-100 transition-all duration-100"
               onClick={() => {
-                fetch('http://localhost:736/program/close');
+                if (screen === 'editor')
+                  askForClose(() => {
+                    fetch('http://localhost:736/program/close');
+                  });
+                else fetch('http://localhost:736/program/close');
               }}
             >
               <IconX className="my-auto h-full" />
@@ -1691,7 +1885,7 @@ const Wrappers = () => {
     >
       <ModalsProvider>
         <NotificationsProvider>
-          <div className={theme}>
+          <div className={`${theme} select-none`}>
             <App />
           </div>
         </NotificationsProvider>

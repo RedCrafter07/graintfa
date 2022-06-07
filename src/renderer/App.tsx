@@ -23,6 +23,7 @@ import {
   updateNotification,
 } from '@mantine/notifications';
 import {
+  IconAlertTriangle,
   IconBrush,
   IconCheck,
   IconChevronRight,
@@ -30,6 +31,7 @@ import {
   IconClock,
   IconDeviceFloppy,
   IconDots,
+  IconEye,
   IconFile,
   IconFileDownload,
   IconFolder,
@@ -78,6 +80,7 @@ const App = () => {
   const [settings, setSettings] = useState<{
     theme: 'light' | 'dark';
     keepNavOpen: boolean;
+    centerNav: boolean;
   }>(undefined);
   const titleBar = useRef<HTMLDivElement>(null);
 
@@ -1557,13 +1560,52 @@ const App = () => {
             >
               Clear recent files
             </Button>
+
+            <Divider
+              my="xs"
+              label={
+                <>
+                  <IconAlertTriangle size={12} />{' '}
+                  <p className="ml-2">Danger zone</p>
+                </>
+              }
+              labelPosition="center"
+            />
+
+            <Button
+              variant="outline"
+              color="red"
+              onClick={() => {
+                fetch('http://localhost:736/recent/clear');
+                setRecent([]);
+                setSettings((s) => {
+                  s = undefined;
+                  fetch('http://localhost:736/settings/default', {
+                    method: 'post',
+                    headers: {
+                      settings: JSON.stringify(s),
+                    },
+                  });
+                  askForClose(
+                    () => {
+                      window.location.reload();
+                    },
+                    'Reload?',
+                    <>Unsaved changes will be lost.</>
+                  );
+                  return s;
+                });
+              }}
+            >
+              Reset settings to default
+            </Button>
           </Tabs.Tab>
           <Tabs.Tab label="Nav" icon={<IconLayoutNavbar />}>
             <Divider
               my="xs"
               label={
                 <>
-                  <IconLockOpen size={12} /> <p className="ml-2">Keep open</p>
+                  <IconEye size={12} /> <p className="ml-2">Appearance</p>
                 </>
               }
               labelPosition="center"
@@ -1589,6 +1631,26 @@ const App = () => {
                 });
               }}
             />
+            <div className="my-2" />
+            <Switch
+              label="Center nav"
+              defaultChecked={
+                settings?.centerNav != undefined ? settings.centerNav : false
+              }
+              onChange={(e) => {
+                const on = e.currentTarget.checked;
+                setSettings((s) => {
+                  s.centerNav = on;
+                  fetch('http://localhost:736/settings', {
+                    method: 'post',
+                    headers: {
+                      settings: JSON.stringify(s),
+                    },
+                  });
+                  return s;
+                });
+              }}
+            />
           </Tabs.Tab>
         </Tabs>
       ),
@@ -1603,6 +1665,8 @@ const App = () => {
   const Nav = () => {
     const keepNavOpen =
       settings?.keepNavOpen != undefined ? settings.keepNavOpen : false;
+    const centerNav =
+      settings?.centerNav != undefined ? settings.centerNav : false;
 
     const [navOpened, setNavOpened] = useState(keepNavOpen);
 
@@ -1715,7 +1779,11 @@ const App = () => {
             : 'hover:bg-gray-300 dark:hover:bg-gray-700'
         } transition-opacity duration-100 text-neutral-900 dark:text-white group`}
       >
-        <div className="w-full h-[calc(100vh-12rem/4)] flex flex-row gap-4">
+        <div
+          className={`w-full h-[calc(100vh-12rem/4)] flex flex-row ${
+            centerNav ? 'justify-center' : ''
+          } gap-4`}
+        >
           <div
             onClick={() => {
               if (keepNavOpen) return;
@@ -1792,7 +1860,7 @@ const App = () => {
         <div className="grid place-items-center absolute w-full top-0 left-0">
           <Button
             color="red"
-            className="z-50"
+            className="z-50 mt-10"
             onClick={() => {
               setLoadingOverlay(false);
             }}

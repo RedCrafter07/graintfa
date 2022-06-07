@@ -293,7 +293,7 @@ server.get('/recent/clear', async (req, res) => {
   res.status(200);
 });
 
-const defaultSettings = [
+const defaultSettings: { path: string; value: number | string | boolean }[] = [
   {
     path: '/settings/theme',
     value: 'dark',
@@ -301,6 +301,10 @@ const defaultSettings = [
   {
     path: '/settings/keepNavOpen',
     value: true,
+  },
+  {
+    path: '/settings/centerNav',
+    value: false,
   },
 ];
 
@@ -321,6 +325,10 @@ server.post('/settings', async (req, res) => {
   );
   db.push('/settings', s);
   res.status(200);
+});
+
+server.post('/settings/default', async (req, res) => {
+  db.push('/settings', {});
 });
 
 server.get('/theme', async (req, res) => {

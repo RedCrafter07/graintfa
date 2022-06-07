@@ -1,0 +1,17 @@
+{
+  "name": "graintfa",
+  "version": "1.0.1",
+  "description": "A tool for Minecraft GUI creation",
+  "license": "GPL-3.0-or-later",
+  "author": {
+    "name": "RedCrafter07",
+    "email": "gh@r07.dev"
+  },
+  "main": "./dist/main/main.js",
+  "scripts": {
+    "electron-rebuild": "node -r ts-node/register ../../.erb/scripts/electron-rebuild.js",
+    "postinstall": "npm run electron-rebuild && npm run link-modules",
+    "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
+  },
+  "dependencies": {}
+}

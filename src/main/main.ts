@@ -81,7 +81,7 @@ const createWindow = async () => {
     show: false,
     width: 1024,
     height: 728,
-    icon: getAssetPath('icon.png'),
+    icon: getAssetPath('icon_big.png'),
     frame: false,
     webPreferences: {
       webSecurity: false,
@@ -156,6 +156,7 @@ type Field = {
     path: string;
     saturation: boolean;
   };
+  rename: boolean;
 };
 
 const server = express();

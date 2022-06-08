@@ -48,6 +48,7 @@ import {
   IconQuestionMark,
   IconRefresh,
   IconReplace,
+  IconScan,
   IconSettings,
   IconTrashX,
   IconX,
@@ -1923,6 +1924,15 @@ const App = () => {
         disabled: screen != 'editor',
         click: () => {
           setFields(fields.map((f) => f));
+        },
+      },
+      {
+        icon: <IconScan />,
+        label: 'Render',
+        hotkey: 'F12',
+        disabled: screen != 'editor',
+        click: () => {
+          renderGUI();
         },
       },
       {

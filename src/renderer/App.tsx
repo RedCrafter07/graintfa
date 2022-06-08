@@ -42,6 +42,7 @@ import {
   IconPlus,
   IconQuestionMark,
   IconRefresh,
+  IconReplace,
   IconSettings,
   IconTrashX,
   IconX,
@@ -1031,7 +1032,7 @@ const App = () => {
           </div>
           <div
             ref={guiEditor}
-            className="guiEditor bg-gray-100 dark:bg-gray-900 col-span-4 w-full h-[calc(100vh-12rem/4)] overflow-x-scroll overflow-y-scroll relative scrollbar"
+            className="guiEditor bg-gray-100 dark:bg-gray-900 col-span-4 w-full h-[calc(100vh-12rem/4)] overflow-scroll relative scrollbar"
           >
             <div className="h-[calc(100vh-12rem/4)] w-full grid place-items-center">
               <div
@@ -1484,176 +1485,181 @@ const App = () => {
     modals.openModal({
       id: 'settings',
       size: 'full',
-      title: 'Settings',
       classNames: {
         modal: 'h-3/4',
       },
       children: (
-        <Tabs
-          color="cyan"
-          orientation="vertical"
-          classNames={{ body: 'w-[90%]' }}
-          tabPadding="xl"
-        >
-          <Tabs.Tab label="General" icon={<IconDots />}>
-            <Divider
-              my="xs"
-              label={
-                <>
-                  <IconBrush size={12} /> <p className="ml-2">Theme</p>
-                </>
-              }
-              labelPosition="center"
-            />
+        <>
+          <h1>
+            <IconSettings className="inline" /> Settings
+          </h1>
+          <hr className="my-4 opacity-50" />
+          <Tabs
+            color="cyan"
+            orientation="vertical"
+            classNames={{ body: 'w-[90%]' }}
+            tabPadding="xl"
+          >
+            <Tabs.Tab label="General" icon={<IconDots />}>
+              <Divider
+                my="xs"
+                label={
+                  <>
+                    <IconBrush size={12} /> <p className="ml-2">Theme</p>
+                  </>
+                }
+                labelPosition="center"
+              />
 
-            <Select
-              label="Theme"
-              defaultValue={settings.theme}
-              data={[
-                { value: 'dark', label: 'Dark mode' },
-                { value: 'light', label: 'Light mode' },
-              ]}
-              onChange={(e) => {
-                setSettings((s) => {
-                  if (e != 'light' && e != 'dark') return;
-                  s.theme = e;
-                  fetch('http://localhost:736/settings', {
-                    method: 'post',
-                    headers: {
-                      settings: JSON.stringify(s),
-                    },
+              <Select
+                label="Theme"
+                defaultValue={settings.theme}
+                data={[
+                  { value: 'dark', label: 'Dark mode' },
+                  { value: 'light', label: 'Light mode' },
+                ]}
+                onChange={(e) => {
+                  setSettings((s) => {
+                    if (e != 'light' && e != 'dark') return;
+                    s.theme = e;
+                    fetch('http://localhost:736/settings', {
+                      method: 'post',
+                      headers: {
+                        settings: JSON.stringify(s),
+                      },
+                    });
+                    return s;
                   });
-                  return s;
-                });
-              }}
-            />
-            <div className="my-2" />
-            <Button
-              color="green"
-              variant="outline"
-              onClick={() => {
-                askForSave();
-              }}
-            >
-              Apply
-            </Button>
+                }}
+              />
+              <div className="my-2" />
+              <Button
+                color="green"
+                variant="outline"
+                onClick={() => {
+                  askForSave();
+                }}
+              >
+                Apply
+              </Button>
 
-            <Divider
-              my="xs"
-              label={
-                <>
-                  <IconFile size={12} /> <p className="ml-2">Recent files</p>
-                </>
-              }
-              labelPosition="center"
-            />
+              <Divider
+                my="xs"
+                label={
+                  <>
+                    <IconFile size={12} /> <p className="ml-2">Recent files</p>
+                  </>
+                }
+                labelPosition="center"
+              />
 
-            <Button
-              variant="outline"
-              onClick={() => {
-                fetch('http://localhost:736/recent/clear');
-                setRecent([]);
-                showNotification({
-                  message: 'Cleared recent files!',
-                  color: 'green',
-                });
-              }}
-            >
-              Clear recent files
-            </Button>
-
-            <Divider
-              my="xs"
-              label={
-                <>
-                  <IconAlertTriangle size={12} />{' '}
-                  <p className="ml-2">Danger zone</p>
-                </>
-              }
-              labelPosition="center"
-            />
-
-            <Button
-              variant="outline"
-              color="red"
-              onClick={() => {
-                fetch('http://localhost:736/recent/clear');
-                setRecent([]);
-                setSettings((s) => {
-                  s = undefined;
-                  fetch('http://localhost:736/settings/default', {
-                    method: 'post',
-                    headers: {
-                      settings: JSON.stringify(s),
-                    },
+              <Button
+                variant="outline"
+                onClick={() => {
+                  fetch('http://localhost:736/recent/clear');
+                  setRecent([]);
+                  showNotification({
+                    message: 'Cleared recent files!',
+                    color: 'green',
                   });
-                  askForClose(
-                    () => {
-                      window.location.reload();
-                    },
-                    'Reload?',
-                    <>Unsaved changes will be lost.</>
-                  );
-                  return s;
-                });
-              }}
-            >
-              Reset settings to default
-            </Button>
-          </Tabs.Tab>
-          <Tabs.Tab label="Nav" icon={<IconLayoutNavbar />}>
-            <Divider
-              my="xs"
-              label={
-                <>
-                  <IconEye size={12} /> <p className="ml-2">Appearance</p>
-                </>
-              }
-              labelPosition="center"
-            />
-            <Switch
-              label="Keep nav opened"
-              defaultChecked={
-                settings?.keepNavOpen != undefined
-                  ? settings.keepNavOpen
-                  : false
-              }
-              onChange={(e) => {
-                const on = e.currentTarget.checked;
-                setSettings((s) => {
-                  s.keepNavOpen = on;
-                  fetch('http://localhost:736/settings', {
-                    method: 'post',
-                    headers: {
-                      settings: JSON.stringify(s),
-                    },
+                }}
+              >
+                Clear recent files
+              </Button>
+
+              <Divider
+                my="xs"
+                label={
+                  <>
+                    <IconAlertTriangle size={12} />{' '}
+                    <p className="ml-2">Danger zone</p>
+                  </>
+                }
+                labelPosition="center"
+              />
+
+              <Button
+                variant="outline"
+                color="red"
+                onClick={() => {
+                  fetch('http://localhost:736/recent/clear');
+                  setRecent([]);
+                  setSettings((s) => {
+                    s = undefined;
+                    fetch('http://localhost:736/settings/default', {
+                      method: 'post',
+                      headers: {
+                        settings: JSON.stringify(s),
+                      },
+                    });
+                    askForClose(
+                      () => {
+                        window.location.reload();
+                      },
+                      'Reload?',
+                      <>Unsaved changes will be lost.</>
+                    );
+                    return s;
                   });
-                  return s;
-                });
-              }}
-            />
-            <div className="my-2" />
-            <Switch
-              label="Center nav"
-              defaultChecked={
-                settings?.centerNav != undefined ? settings.centerNav : false
-              }
-              onChange={(e) => {
-                const on = e.currentTarget.checked;
-                setSettings((s) => {
-                  s.centerNav = on;
-                  fetch('http://localhost:736/settings', {
-                    method: 'post',
-                    headers: {
-                      settings: JSON.stringify(s),
-                    },
+                }}
+              >
+                Reset settings to default
+              </Button>
+            </Tabs.Tab>
+            <Tabs.Tab label="Nav" icon={<IconLayoutNavbar />}>
+              <Divider
+                my="xs"
+                label={
+                  <>
+                    <IconEye size={12} /> <p className="ml-2">Appearance</p>
+                  </>
+                }
+                labelPosition="center"
+              />
+              <Switch
+                label="Keep nav opened"
+                defaultChecked={
+                  settings?.keepNavOpen != undefined
+                    ? settings.keepNavOpen
+                    : false
+                }
+                onChange={(e) => {
+                  const on = e.currentTarget.checked;
+                  setSettings((s) => {
+                    s.keepNavOpen = on;
+                    fetch('http://localhost:736/settings', {
+                      method: 'post',
+                      headers: {
+                        settings: JSON.stringify(s),
+                      },
+                    });
+                    return s;
                   });
-                  return s;
-                });
-              }}
-            />
-          </Tabs.Tab>
-        </Tabs>
+                }}
+              />
+              <div className="my-2" />
+              <Switch
+                label="Center nav"
+                defaultChecked={
+                  settings?.centerNav != undefined ? settings.centerNav : false
+                }
+                onChange={(e) => {
+                  const on = e.currentTarget.checked;
+                  setSettings((s) => {
+                    s.centerNav = on;
+                    fetch('http://localhost:736/settings', {
+                      method: 'post',
+                      headers: {
+                        settings: JSON.stringify(s),
+                      },
+                    });
+                    return s;
+                  });
+                }}
+              />
+            </Tabs.Tab>
+          </Tabs>
+        </>
       ),
     });
   };
@@ -1723,6 +1729,25 @@ const App = () => {
       hotkey?: string;
       click: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
     }[] = [
+      {
+        icon: <IconPlus />,
+        label: 'Create new',
+        hotkey: 'Ctrl+N',
+        disabled: screen != 'start',
+        click: () => {
+          setFields([]);
+          setScreen('editor');
+        },
+      },
+      {
+        icon: <IconReplace />,
+        label: 'Rerender',
+        hotkey: 'F2',
+        disabled: screen != 'editor',
+        click: () => {
+          setFields(fields.map((f) => f));
+        },
+      },
       {
         icon: <IconHome />,
         label: 'Start screen',

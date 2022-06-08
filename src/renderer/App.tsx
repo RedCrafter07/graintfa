@@ -38,7 +38,6 @@ import {
   IconHome,
   IconKeyboard,
   IconLayoutNavbar,
-  IconLockOpen,
   IconMinus,
   IconPlus,
   IconQuestionMark,
@@ -514,9 +513,8 @@ const App = () => {
             rename: false,
           };
           clonedFields.push(field);
+          setFieldIndex((i) => i + 1);
         });
-
-        setFieldIndex((i) => i + 1);
 
         setFields([
           ...fields.map((f) => {

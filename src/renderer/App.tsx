@@ -1045,6 +1045,10 @@ const App = () => {
       );
     };
 
+    const FieldMenuDivider = () => {
+      return <hr className="mx-4 my-2 opacity-50" />;
+    };
+
     const fieldIndex = fields.indexOf(fields.find((f) => f.id == id));
 
     return (
@@ -1077,7 +1081,7 @@ const App = () => {
             setFields(fields.map((f) => f));
           }}
         />
-        <Divider />
+        <FieldMenuDivider />
         <FieldMenuItem
           label="Move left"
           hotkey="⬅"

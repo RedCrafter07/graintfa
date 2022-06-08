@@ -936,6 +936,7 @@ const App = () => {
         className="absolute"
       >
         <img
+          draggable="false"
           ref={fieldImg}
           src="http://localhost:736/assets/minecraft_inv_field.png"
           width={f.size}
@@ -1131,6 +1132,7 @@ const App = () => {
                   }}
                   multiple
                   initialItem={0}
+                  iconPosition="right"
                 >
                   <Accordion.Item label="Position">
                     <NumberInput

@@ -15,7 +15,12 @@ import {
   TextInput,
   Tooltip,
 } from '@mantine/core';
-import { useDocumentTitle, useHotkeys, useWindowEvent } from '@mantine/hooks';
+import {
+  useClickOutside,
+  useDocumentTitle,
+  useHotkeys,
+  useWindowEvent,
+} from '@mantine/hooks';
 import { ModalsProvider, useModals } from '@mantine/modals';
 import {
   NotificationsProvider,
@@ -48,7 +53,7 @@ import {
   IconX,
 } from '@tabler/icons';
 import { AnimatePresence, motion, Transition, Variants } from 'framer-motion';
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 
 type Field = {
   x: number;
@@ -83,6 +88,7 @@ const App = () => {
     centerNav: boolean;
   }>(undefined);
   const titleBar = useRef<HTMLDivElement>(null);
+  const [contextMenu, setContextMenu] = useState<JSX.Element>();
 
   useEffect(() => {
     fetch('http://localhost:736/settings')
@@ -105,6 +111,35 @@ const App = () => {
   const setFields = (newFields: Field[]) => {
     setDocTitle((t) => (!t.startsWith('*') ? `*${t}` : t));
     setFieldsClean(newFields);
+  };
+
+  const cloneFields = () => {
+    const selectedFields = fields.filter((f) => f.selected);
+    const clonedFields: Field[] = [];
+
+    selectedFields.forEach((f, i) => {
+      const field: Field = {
+        x: f.x,
+        y: f.y,
+        name: `field ${fieldIndex + 1 + i}`,
+        selected: true,
+        highlighted: false,
+        id: fieldIndex + 1 + i,
+        size: 100,
+        rename: false,
+      };
+      clonedFields.push(field);
+    });
+    setFieldIndex((i) => i + selectedFields.length);
+
+    setFields([
+      ...fields.map((f) => {
+        f.selected = false;
+        f.highlighted = false;
+        return f;
+      }),
+      ...clonedFields,
+    ]);
   };
 
   useDocumentTitle(docTitle);
@@ -499,32 +534,7 @@ const App = () => {
       group: 'Editor',
       title: 'Clone selected fields',
       onPress: () => {
-        const selectedFields = fields.filter((f) => f.selected);
-        const clonedFields: Field[] = [];
-
-        selectedFields.forEach((f, i) => {
-          const field: Field = {
-            x: f.x,
-            y: f.y,
-            name: `field ${fieldIndex + 1 + i}`,
-            selected: true,
-            highlighted: false,
-            id: fieldIndex + 1 + i,
-            size: 100,
-            rename: false,
-          };
-          clonedFields.push(field);
-        });
-        setFieldIndex((i) => i + selectedFields.length);
-
-        setFields([
-          ...fields.map((f) => {
-            f.selected = false;
-            f.highlighted = false;
-            return f;
-          }),
-          ...clonedFields,
-        ]);
+        cloneFields();
       },
     },
     {
@@ -948,6 +958,11 @@ const App = () => {
               ? 'border-4 border-yellow-400'
               : ''
           } pointer-events-auto`}
+          onContextMenu={(e) => {
+            setContextMenu(
+              <FieldMenu id={f.id} x={e.clientX} y={e.clientY}></FieldMenu>
+            );
+          }}
           onClick={(e) => {
             if (e.ctrlKey && e.altKey) {
               fields.splice(id, 1);
@@ -991,6 +1006,162 @@ const App = () => {
         ) : (
           <></>
         )}
+      </div>
+    );
+  };
+
+  const FieldMenu = (props: { id: number; x: number; y: number }) => {
+    const { id, x, y } = props;
+    const ref = useClickOutside(() => setContextMenu(undefined));
+
+    useEffect(() => {
+      fields[fieldIndex].selected = true;
+      setFields(fields.map((f) => f));
+    }, []);
+
+    const FieldMenuItem = (props: {
+      label: string;
+      hotkey: string;
+      onClick: (e: React.MouseEvent<HTMLParagraphElement, MouseEvent>) => void;
+    }) => {
+      const { label, onClick, hotkey } = props;
+      return (
+        <>
+          <p
+            className="px-4 py-2 hover:bg-slate-700 rounded-lg flex justify-between w-full"
+            onClick={(e) => {
+              setContextMenu(undefined);
+              onClick(e);
+            }}
+          >
+            <span>{label}</span>
+            <span>
+              {hotkey.split('+').map((k) => {
+                return <Kbd>{k}</Kbd>;
+              })}
+            </span>
+          </p>
+        </>
+      );
+    };
+
+    const fieldIndex = fields.indexOf(fields.find((f) => f.id == id));
+
+    return (
+      <div
+        className="absolute pointer-events-auto bg-slate-800 border-opacity-50 border-white border rounded-lg w-80 h-60 overflow-y-scroll scrollbar"
+        style={{ top: y, left: x }}
+        ref={ref}
+      >
+        <FieldMenuItem
+          label="Delete"
+          onClick={() => {
+            fields.splice(fieldIndex, 1);
+            setFields(fields.map((f) => f));
+          }}
+          hotkey={'Backspace'}
+        />
+        <FieldMenuItem
+          label="Clone"
+          hotkey="Ctrl+C"
+          onClick={() => {
+            setFields(fields.map((f) => f));
+            cloneFields();
+          }}
+        />
+        <FieldMenuItem
+          label="Rename"
+          hotkey="Ctrl+W"
+          onClick={() => {
+            fields[fieldIndex].rename = true;
+            setFields(fields.map((f) => f));
+          }}
+        />
+        <Divider />
+        <FieldMenuItem
+          label="Move left"
+          hotkey="⬅"
+          onClick={() => {
+            moveSelected('left');
+          }}
+        />
+        <FieldMenuItem
+          label="Move right"
+          hotkey="➡"
+          onClick={() => {
+            moveSelected('right');
+          }}
+        />
+        <FieldMenuItem
+          label="Move up"
+          hotkey="⬆"
+          onClick={() => {
+            moveSelected('up');
+          }}
+        />
+        <FieldMenuItem
+          label="Move down"
+          hotkey="⬇"
+          onClick={() => {
+            moveSelected('down');
+          }}
+        />
+        <FieldMenuItem
+          label="Move left 10px"
+          hotkey="Shift+⬅"
+          onClick={() => {
+            moveSelected('left', 10);
+          }}
+        />
+        <FieldMenuItem
+          label="Move right 10px"
+          hotkey="Shift+➡"
+          onClick={() => {
+            moveSelected('right', 10);
+          }}
+        />
+        <FieldMenuItem
+          label="Move up 10px"
+          hotkey="Shift+⬆"
+          onClick={() => {
+            moveSelected('up', 10);
+          }}
+        />
+        <FieldMenuItem
+          label="Move down 10px"
+          hotkey="Shift+⬇"
+          onClick={() => {
+            moveSelected('down', 10);
+          }}
+        />
+        <FieldMenuItem
+          label="Move left 100px"
+          hotkey="Ctrl+Shift+⬅"
+          onClick={() => {
+            moveSelected('left', 100);
+          }}
+        />
+        <FieldMenuItem
+          label="Move right 100px"
+          hotkey="Ctrl+Shift+➡"
+          onClick={() => {
+            moveSelected('right', 100);
+          }}
+        />
+        <FieldMenuItem
+          label="Move up 100px"
+          hotkey="Ctrl+Shift+⬆"
+          onClick={() => {
+            moveSelected('up', 100);
+          }}
+        />
+        <FieldMenuItem
+          label="Move down 100px"
+          hotkey="Ctrl+Shift+⬇"
+          onClick={() => {
+            moveSelected('down', 100);
+          }}
+        />
       </div>
     );
   };
@@ -1311,7 +1482,9 @@ const App = () => {
             )}
           </div>
         </div>
-        <div className="absolute pointer-events-none top-0 left-0 w-full h-full"></div>
+        <div className="absolute pointer-events-none top-0 left-0 w-full h-full">
+          {contextMenu}
+        </div>
       </div>
     );
   };

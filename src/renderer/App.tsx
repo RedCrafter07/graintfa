@@ -1834,6 +1834,7 @@ const App = () => {
                         onClick={(e) => {
                           if (c.disabled) return;
                           c.click(e);
+                          if (keepNavOpen) return;
                           setNavOpened(false);
                         }}
                         withArrow

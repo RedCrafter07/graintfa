@@ -88,6 +88,7 @@ const createWindow = async () => {
     },
   });
 
+  mainWindow.setIcon(getAssetPath('icon_big.png'));
   mainWindow.setMenu(null);
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));

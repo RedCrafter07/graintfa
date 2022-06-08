@@ -508,7 +508,7 @@ const App = () => {
             name: `field ${fieldIndex + 1 + i}`,
             selected: true,
             highlighted: false,
-            id: fieldIndex + 1,
+            id: fieldIndex + 1 + i,
             size: 100,
             rename: false,
           };

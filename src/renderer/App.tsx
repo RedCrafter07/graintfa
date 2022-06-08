@@ -501,11 +501,11 @@ const App = () => {
         const selectedFields = fields.filter((f) => f.selected);
         const clonedFields: Field[] = [];
 
-        selectedFields.forEach((f) => {
+        selectedFields.forEach((f, i) => {
           const field: Field = {
             x: f.x,
             y: f.y,
-            name: `field ${fieldIndex + 1}`,
+            name: `field ${fieldIndex + 1 + i}`,
             selected: true,
             highlighted: false,
             id: fieldIndex + 1,
@@ -513,8 +513,8 @@ const App = () => {
             rename: false,
           };
           clonedFields.push(field);
-          setFieldIndex((i) => i + 1);
         });
+        setFieldIndex((i) => i + selectedFields.length);
 
         setFields([
           ...fields.map((f) => {
@@ -1121,85 +1121,95 @@ const App = () => {
               <div>
                 <h1 className="text-2xl">Edit {editField.name}</h1>
                 <hr className="my-6 opacity-50" />
-                <p className="text-xl">Position:</p>
-                <NumberInput
-                  defaultValue={editField.x}
-                  min={0}
-                  max={guiImg.current.offsetWidth - editField.size}
-                  onBlur={(e) => {
-                    const i = fields.indexOf(editField);
-                    const val = parseInt(e.currentTarget.value);
-                    editField.x =
-                      val >= 0 &&
-                      val <= guiImg.current.offsetWidth - editField.size
-                        ? val
-                        : val < 0
-                        ? 0
-                        : guiImg.current.offsetWidth - editField.size;
-                    setFields(
-                      fields.map((f, index) => {
-                        if (index == i) {
-                          return editField;
-                        }
-                        return f;
-                      })
-                    );
+                <Accordion
+                  styles={{
+                    control: {
+                      ':hover': {
+                        backgroundColor: '#2c2e3333',
+                      },
+                    },
                   }}
-                  variant={'default'}
-                  classNames={{
-                    input: 'bg-black bg-opacity-25 rounded-md',
-                    control: 'bg-black bg-opacity-25',
-                  }}
-                  icon={<>x</>}
-                />
-                <div className="my-2"></div>
-                <NumberInput
-                  defaultValue={editField.y}
-                  min={0}
-                  max={guiImg.current.offsetHeight - editField.size}
-                  onBlur={(e) => {
-                    const i = fields.indexOf(editField);
-                    const val = parseInt(e.currentTarget.value);
-                    editField.y =
-                      val >= 0 &&
-                      val <= guiImg.current.offsetHeight - editField.size
-                        ? val
-                        : val < 0
-                        ? 0
-                        : guiImg.current.offsetHeight - editField.size;
-                    setFields(
-                      fields.map((f, index) => {
-                        if (index == i) {
-                          return editField;
-                        }
-                        return f;
-                      })
-                    );
-                  }}
-                  variant={'default'}
-                  classNames={{
-                    input: 'bg-black bg-opacity-25 rounded-md',
-                    control: 'bg-black bg-opacity-25',
-                  }}
-                  icon={<>y</>}
-                />
-
-                <hr className="my-4 opacity-50" />
-                <p className="text-xl">Size:</p>
-                <Slider
-                  disabled
-                  step={1}
-                  min={100}
-                  max={300}
-                  label={(v) => `x${v / 100}`}
-                  defaultValue={editField.size}
-                  marks={[
-                    { value: 100, label: 'x1' },
-                    { value: 200, label: 'x2' },
-                    { value: 300, label: 'x3' },
-                  ]}
-                  color="cyan"
-                  /* onChangeEnd={(e) => {
+                  multiple
+                  initialItem={0}
+                >
+                  <Accordion.Item label="Position">
+                    <NumberInput
+                      defaultValue={editField.x}
+                      min={0}
+                      max={guiImg.current.offsetWidth - editField.size}
+                      onBlur={(e) => {
+                        const i = fields.indexOf(editField);
+                        const val = parseInt(e.currentTarget.value);
+                        editField.x =
+                          val >= 0 &&
+                          val <= guiImg.current.offsetWidth - editField.size
+                            ? val
+                            : val < 0
+                            ? 0
+                            : guiImg.current.offsetWidth - editField.size;
+                        setFields(
+                          fields.map((f, index) => {
+                            if (index == i) {
+                              return editField;
+                            }
+                            return f;
+                          })
+                        );
+                      }}
+                      variant={'default'}
+                      classNames={{
+                        input: 'bg-black bg-opacity-25 rounded-md',
+                        control: 'bg-black bg-opacity-25',
+                      }}
+                      icon={<>x</>}
+                    />
+                    <div className="my-2" />
+                    <NumberInput
+                      defaultValue={editField.y}
+                      min={0}
+                      max={guiImg.current.offsetHeight - editField.size}
+                      onBlur={(e) => {
+                        const i = fields.indexOf(editField);
+                        const val = parseInt(e.currentTarget.value);
+                        editField.y =
+                          val >= 0 &&
+                          val <= guiImg.current.offsetHeight - editField.size
+                            ? val
+                            : val < 0
+                            ? 0
+                            : guiImg.current.offsetHeight - editField.size;
+                        setFields(
+                          fields.map((f, index) => {
+                            if (index == i) {
+                              return editField;
+                            }
+                            return f;
+                          })
+                        );
+                      }}
+                      variant={'default'}
+                      classNames={{
+                        input: 'bg-black bg-opacity-25 rounded-md',
+                        control: 'bg-black bg-opacity-25',
+                      }}
+                      icon={<>y</>}
+                    />
+                  </Accordion.Item>
+                  <Accordion.Item label="Size">
+                    <Slider
+                      disabled
+                      step={1}
+                      min={100}
+                      max={300}
+                      label={(v) => `x${v / 100}`}
+                      defaultValue={editField.size}
+                      marks={[
+                        { value: 100, label: 'x1' },
+                        { value: 200, label: 'x2' },
+                        { value: 300, label: 'x3' },
+                      ]}
+                      color="cyan"
+                      /* onChangeEnd={(e) => {
                     const i = fields.indexOf(editField);
                     editField.size = e;
                     setFields(
@@ -1211,17 +1221,8 @@ const App = () => {
                       })
                     );
                   }} */
-                />
-                <hr className="my-6 opacity-50" />
-                <Accordion
-                  styles={{
-                    control: {
-                      ':hover': {
-                        backgroundColor: '#2c2e3333',
-                      },
-                    },
-                  }}
-                >
+                    />
+                  </Accordion.Item>
                   <Accordion.Item label="Item texture">
                     <p>
                       Select an item texture to display over the slot texture.
@@ -1717,11 +1718,13 @@ const App = () => {
       icon: ReactNode;
       label: string;
       disabled: boolean;
+      hotkey?: string;
       click: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
     }[] = [
       {
         icon: <IconHome />,
-        label: 'Start screen (Ctrl+H)',
+        label: 'Start screen',
+        hotkey: 'Ctrl+H',
         disabled: false,
         click: () => {
           openHomeScreen();
@@ -1729,7 +1732,8 @@ const App = () => {
       },
       {
         icon: <IconDeviceFloppy />,
-        label: 'Save (Ctrl+S)',
+        label: 'Save',
+        hotkey: 'Ctrl+S',
         disabled: screen != 'editor',
         click: () => {
           saveFile(file);
@@ -1737,7 +1741,8 @@ const App = () => {
       },
       {
         icon: <IconFolder />,
-        label: 'Open (Ctrl+O)',
+        label: 'Open',
+        hotkey: 'Ctrl+O',
         disabled: false,
         click: () => {
           askForOpen();
@@ -1745,7 +1750,8 @@ const App = () => {
       },
       {
         icon: <IconSettings />,
-        label: 'Settings (Ctrl+,)',
+        label: 'Settings',
+        hotkey: 'Ctrl+,',
         disabled: false,
         click: () => {
           openSettings();
@@ -1761,7 +1767,8 @@ const App = () => {
       },
       {
         icon: <IconKeyboard />,
-        label: 'Hotkeys (Ctrl+Alt+S)',
+        label: 'Hotkeys',
+        hotkey: 'Ctrl+Alt+S',
         disabled: false,
         click: () => {
           openHotkeys();
@@ -1816,32 +1823,34 @@ const App = () => {
                 exit="exit"
                 className="flex flex-row"
               >
-                {controls.map((c, i) => {
-                  return (
-                    <Tooltip
-                      key={i}
-                      className="cursor-pointer"
-                      label={c.label}
-                      onClick={(e) => {
-                        if (c.disabled) return;
-                        c.click(e);
-                        setNavOpened(false);
-                      }}
-                      withArrow
-                    >
-                      <motion.div
-                        variants={item}
-                        className={`w-12 h-12 ${
-                          c.disabled
-                            ? 'opacity-50 text-neutral-600 dark:text-neutral-400'
-                            : 'hover:bg-gray-300 dark:hover:bg-gray-800'
-                        } grid place-items-center transition-colors duration-100`}
+                {controls
+                  .sort((a, b) => (a.label > b.label ? 1 : -1))
+                  .map((c, i) => {
+                    return (
+                      <Tooltip
+                        key={i}
+                        className="cursor-pointer"
+                        label={`${c.label}${c.hotkey ? ` (${c.hotkey})` : ''}`}
+                        onClick={(e) => {
+                          if (c.disabled) return;
+                          c.click(e);
+                          setNavOpened(false);
+                        }}
+                        withArrow
                       >
-                        {c.icon}
-                      </motion.div>
-                    </Tooltip>
-                  );
-                })}
+                        <motion.div
+                          variants={item}
+                          className={`w-12 h-12 ${
+                            c.disabled
+                              ? 'opacity-50 text-neutral-600 dark:text-neutral-400'
+                              : 'hover:bg-gray-300 dark:hover:bg-gray-800'
+                          } grid place-items-center transition-colors duration-100`}
+                        >
+                          {c.icon}
+                        </motion.div>
+                      </Tooltip>
+                    );
+                  })}
               </motion.div>
             ) : (
               ''

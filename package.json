@@ -225,12 +225,16 @@
     "win": {
       "target": [
         "nsis",
-        "portable"
+        "nsis-web",
+        "portable",
+        "zip",
+        "msi"
       ]
     },
     "linux": {
       "target": [
-        "AppImage"
+        "AppImage",
+        "deb"
       ],
       "category": "Development"
     },

@@ -12,6 +12,8 @@
 <h1 align="center">Graintfa</h1>
 <p align="center">A tool for Minecraft GUI creation</p>
 
+![GUI Image](https://github.com/RedCrafter07/Graintfa/blob/main/.github/assets/screenshots/editor.png?raw=true)
+
 ## Installation
 Graintfa is very simple to install. Just go to the [releases page](https://github.com/RedCrafter07/Graintfa/releases/latest) and pick your preferred installation method. Currently, Graintfa is only available for Windows. We recommend using the offline or web installer.
 

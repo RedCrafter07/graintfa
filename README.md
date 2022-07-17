@@ -21,7 +21,7 @@ Graintfa is very simple to install. Just go to the [releases page](https://githu
 When you start first, you will see the home screen. It's pretty much self explaining and you will find what you need quickly. All important actions are in the navbar, which is located at the bottom of your screen.
 
 ## File Types
-Graintfa is using its own file type, `.rgrainf`. These files contain the data of your GUI, for example where the fields are positioned exactly.
+Graintfa is using its own file type, `.rgraintf`. These files contain the data of your GUI, for example where the fields are positioned exactly.
 
 ## Finished designing? 
 When you're ready with your design, you can press `F12` to render the GUI. You will be prompted with a preview. On the right, you can click on the Render Menu Button. You can save and copy your render there. Simple, right?

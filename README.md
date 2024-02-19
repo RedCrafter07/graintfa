@@ -15,7 +15,7 @@
 ![GUI Image](https://github.com/RedCrafter07/Graintfa/blob/main/.github/assets/screenshots/editor.png?raw=true)
 
 # Important
-This project was discontinued due to lack of time and people stealing ideas. Thanks for your support and interest!
+This project was temporarily discontinued. Continuation will come soon, stay tuned!
 
 ## Installation
 Graintfa is very simple to install. Just go to the [releases page](https://github.com/RedCrafter07/Graintfa/releases/latest) and pick your preferred installation method. Currently, Graintfa is only available for Windows. We recommend using the offline or web installer.

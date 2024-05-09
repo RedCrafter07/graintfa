@@ -18,7 +18,7 @@ function createMainWindow() {
 			preload: path.join(__dirname, 'preload.js'),
 		},
 		show: false,
-		title: 'Redify | Loading...',
+		title: 'Graintfa | Loading...',
 	});
 
 	if (env != 'production') {

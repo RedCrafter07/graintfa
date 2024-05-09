@@ -4,13 +4,13 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"start:renderer": "cross-env NODE_ENV=development webpack serve --config ./.redify/webpack/webpack.config.renderer.ts",
-		"start:main": "cross-env NODE_ENV=development webpack --config ./.redify/webpack/webpack.config.main.ts --watch",
+		"start:renderer": "cross-env NODE_ENV=development webpack serve --config ./.graintfa/webpack/webpack.config.renderer.ts",
+		"start:main": "cross-env NODE_ENV=development webpack --config ./.graintfa/webpack/webpack.config.main.ts --watch",
 		"start": "concurrently \"pnpm start:main\" \"pnpm start:renderer\"",
 		"dev": "pnpm start",
 		"build": "pnpm build:renderer && pnpm build:main",
-		"build:renderer": "cross-env NODE_ENV=production webpack --config ./.redify/webpack/webpack.config.renderer.ts",
-		"build:main": "cross-env NODE_ENV=production webpack --config ./.redify/webpack/webpack.config.main.ts",
+		"build:renderer": "cross-env NODE_ENV=production webpack --config ./.graintfa/webpack/webpack.config.renderer.ts",
+		"build:main": "cross-env NODE_ENV=production webpack --config ./.graintfa/webpack/webpack.config.main.ts",
 		"package": "cross-env NODE_ENV=production electron-builder",
 		"full-package": "pnpm build && pnpm package"
 	},
@@ -42,6 +42,7 @@
 	},
 	"devDependencies": {
 		"concurrently": "^8.2.2",
-		"cross-env": "^7.0.3"
+		"cross-env": "^7.0.3",
+		"webpack-dev-server": "^5.0.4"
 	}
 }

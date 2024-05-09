@@ -9,7 +9,7 @@ export default {
 	},
 	target: 'electron-main',
 	output: {
-		path: __dirname + '/../../dist/main',
+		path: __dirname + '/../../../dist/main',
 		filename: '[name].js',
 	},
 	module: {

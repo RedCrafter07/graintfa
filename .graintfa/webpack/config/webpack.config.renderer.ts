@@ -6,7 +6,7 @@ export default {
 	target: ['web', 'electron-renderer'],
 
 	output: {
-		path: __dirname + '/../../dist/renderer',
+		path: __dirname + '/../../../dist/renderer',
 		filename: 'index.js',
 	},
 

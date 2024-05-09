@@ -1,9 +1,19 @@
 {
-	"name": "Graintfa",
+	"name": "graintfa",
 	"version": "1.1.0",
 	"description": "",
 	"main": "index.js",
-	"scripts": {},
+	"scripts": {
+		"start:renderer": "cross-env NODE_ENV=development webpack serve --config ./.redify/webpack/webpack.config.renderer.ts",
+		"start:main": "cross-env NODE_ENV=development webpack --config ./.redify/webpack/webpack.config.main.ts --watch",
+		"start": "concurrently \"pnpm start:main\" \"pnpm start:renderer\"",
+		"dev": "pnpm start",
+		"build": "pnpm build:renderer && pnpm build:main",
+		"build:renderer": "cross-env NODE_ENV=production webpack --config ./.redify/webpack/webpack.config.renderer.ts",
+		"build:main": "cross-env NODE_ENV=production webpack --config ./.redify/webpack/webpack.config.main.ts",
+		"package": "cross-env NODE_ENV=production electron-builder",
+		"full-package": "pnpm build && pnpm package"
+	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
@@ -14,7 +24,6 @@
 		"@types/react-dom": "^18.3.0",
 		"@types/webpack": "^5.28.5",
 		"autoprefixer": "^10.4.19",
-		"cross-env": "^7.0.3",
 		"css-loader": "^7.1.1",
 		"electron": "^30.0.3",
 		"esbuild": "^0.21.1",
@@ -30,5 +39,9 @@
 		"typescript": "^5.4.5",
 		"webpack": "^5.91.0",
 		"webpack-cli": "^5.1.4"
+	},
+	"devDependencies": {
+		"concurrently": "^8.2.2",
+		"cross-env": "^7.0.3"
 	}
 }

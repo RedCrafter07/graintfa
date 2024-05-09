@@ -59,6 +59,9 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      style-loader:
+        specifier: ^4.0.0
+        version: 4.0.0(webpack@5.91.0(esbuild@0.21.1)(webpack-cli@5.1.4(webpack-dev-server@5.0.4)(webpack@5.91.0)))
       tailwindcss:
         specifier: ^3.4.3
         version: 3.4.3(ts-node@10.9.2(@types/node@20.12.11)(typescript@5.4.5))
@@ -2283,6 +2286,12 @@ packages:
   strip-final-newline@2.0.0:
     resolution: {integrity: sha512-BrpvfNAE3dcvq7ll3xVumzjKjZQ5tI1sEUIKr3Uoks0XUl45St3FlatVqef9prk4jRDzhW6WZg+3bk93y6pLjA==}
     engines: {node: '>=6'}
+
+  style-loader@4.0.0:
+    resolution: {integrity: sha512-1V4WqhhZZgjVAVJyt7TdDPZoPBPNHbekX4fWnCJL1yQukhCeZhJySUL+gL9y6sNdN95uEOS83Y55SqHcP7MzLA==}
+    engines: {node: '>= 18.12.0'}
+    peerDependencies:
+      webpack: ^5.27.0
 
   sucrase@3.35.0:
     resolution: {integrity: sha512-8EbVDiu9iN/nESwxeSxDKe0dunta1GOlHufmSSXxMD2z2/tMZpDMpvXQGsc+ajGo8y2uYUmixaSRUc/QPoQ0GA==}
@@ -4732,6 +4741,10 @@ snapshots:
       ansi-regex: 6.0.1
 
   strip-final-newline@2.0.0: {}
+
+  style-loader@4.0.0(webpack@5.91.0(esbuild@0.21.1)(webpack-cli@5.1.4(webpack-dev-server@5.0.4)(webpack@5.91.0))):
+    dependencies:
+      webpack: 5.91.0(esbuild@0.21.1)(webpack-cli@5.1.4(webpack-dev-server@5.0.4)(webpack@5.91.0))
 
   sucrase@3.35.0:
     dependencies:

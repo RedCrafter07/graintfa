@@ -17,14 +17,14 @@ function newGuiData(): GuiData {
                 data: {},
                 dimensions: { x: 12, y: 17, width: 18, height: 18 },
                 id: 'slotElement',
-				name: "",
+                name: '',
             },
         ],
         baseElement: {
             data: {},
             dimensions: { x: 0, y: 0, width: 176, height: 166 },
             id: 'emptyInventoryElement',
-			name: "background",
+            name: 'background',
         },
     };
 }
@@ -100,8 +100,8 @@ export default function App() {
                 undefined /* The left section, in here you should have a list of all elements you can use */
             }
             <div className='section-left'>
-				{undefined /* todo: add a list of all available elements */}
-			</div>
+                {undefined /* todo: add a list of all available elements */}
+            </div>
             <canvas
                 width={
                     data.baseElement.dimensions.width + 2 /*
@@ -117,7 +117,7 @@ export default function App() {
                     }`,
                 }}
                 onMouseMove={function (event) {
-					if ((event.buttons & 0b1) == 0) return;
+                    if ((event.buttons & 0b1) == 0) return;
                     const target = event.target;
                     // should always be true
                     if (!(target instanceof HTMLCanvasElement)) return;
@@ -130,13 +130,17 @@ export default function App() {
                     // Example: the canvas is 10x10, but the clientWidth/height is 20x20, we get 0.5 (10 / 20). And a mouse position of 20, 20 multiplied by 0.5, 0.5 is 10, 10, so the actual position on the canvas we're on.
                     // NOTE: As noted above, the "gui space" actually starts at 1, 1, so we also have to subtract 1
                     const x =
-                        Math.floor(((event.clientX - target.offsetLeft) * target.width) /
-                            target.clientWidth) -
-                        1;
+                        Math.floor(
+                            ((event.clientX - target.offsetLeft) *
+                                target.width) /
+                                target.clientWidth
+                        ) - 1;
                     const y =
-                        Math.floor(((event.clientY - target.offsetTop) * target.height) /
-                            target.clientHeight) -
-                        1;
+                        Math.floor(
+                            ((event.clientY - target.offsetTop) *
+                                target.height) /
+                                target.clientHeight
+                        ) - 1;
 
                     if (
                         selected &&
@@ -168,6 +172,7 @@ export default function App() {
                     }
                 }}
                 onMouseDown={function (event) {
+                    if ((event.buttons & 0b1) == 0) return;
                     const target = event.target;
                     // should always be true
                     if (!(target instanceof HTMLCanvasElement)) return;
@@ -179,13 +184,16 @@ export default function App() {
                     // if we divide the width/height by the clientWidth/clientHeight, we will have the multiplier by which we need to multiply the mouse position relative to the top left of the canvas (clientX/Y - target.offsetLeft/Top).
                     // Example: the canvas is 10x10, but the clientWidth/height is 20x20, we get 0.5 (10 / 20). And a mouse position of 20, 20 multiplied by 0.5, 0.5 is 10, 10, so the actual position on the canvas we're on.
                     // NOTE: As noted above, the "gui space" actually starts at 1, 1, so we also have to subtract 1
-                    const x =
-                        Math.floor(((event.clientX - target.offsetLeft) * target.width) /
-                        target.clientWidth);
-                    const y =
-                        Math.floor(((event.clientY - target.offsetTop) * target.height) /
-                        target.clientHeight);
+                    const x = Math.floor(
+                        ((event.clientX - target.offsetLeft) * target.width) /
+                            target.clientWidth
+                    );
+                    const y = Math.floor(
+                        ((event.clientY - target.offsetTop) * target.height) /
+                            target.clientHeight
+                    );
 
+                    event.preventDefault();
                     if (
                         x > 0 &&
                         y > 0 &&
@@ -231,10 +239,18 @@ export default function App() {
                 undefined /* this is the right section, here you should be able to configure the custom name of an element, its position and size and the config it supplies */
             }
             <div className='section-right'>
-				{selected && <>
-					<h3>{selected.index >= 0 ? `Element #${selected.index}` : "GUI"}</h3>
-					{undefined /* Put the data here, and additional settings if the element is the background (such as the ability to change the background element) */}
-				</>}
+                {selected && (
+                    <>
+                        <h3>
+                            {selected.index >= 0
+                                ? `Element #${selected.index}`
+                                : 'GUI'}
+                        </h3>
+                        {
+                            undefined /* Put the data here, and additional settings if the element is the background (such as the ability to change the background element) */
+                        }
+                    </>
+                )}
             </div>
         </div>
     );

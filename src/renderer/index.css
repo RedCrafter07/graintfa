@@ -3,5 +3,40 @@
 @tailwind utilities;
 
 body {
-	@apply bg-black text-white;
+	@apply bg-gray-800 text-white;
+}
+
+.main {
+	display: flex;
+	flex-wrap: nowrap;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	width: 100vw;
+}
+
+.section-left {
+	width: calc(15vw - 1px);
+	height: 100vh;
+	border-right-width: 1px;
+	border-style: solid;
+	
+	@apply bg-gray-700 border-slate-900
+}
+
+.section-right {
+	width: calc(25vw - 1px);
+	height: 100vh;
+	border-left-width: 1px;
+	border-style: solid;
+	
+	@apply bg-gray-700 border-slate-900
+}
+
+canvas {
+	max-width: 60vw;
+	max-height: 90vh;
+	image-rendering: pixelated;
+	width: 100%;
+	margin: 0px 5em;
 }

@@ -11,15 +11,21 @@ function createMainWindow() {
 	mainWindow = new BrowserWindow({
 		minWidth: 1200,
 		minHeight: 800,
-		width: (width / 6) * 5,
-		height: (height / 6) * 5,
 		center: true,
 		webPreferences: {
 			preload: path.join(__dirname, 'preload.js'),
 		},
 		show: false,
 		title: 'Graintfa | Loading...',
+		titleBarStyle: 'customButtonsOnHover',
+		maximizable: true,
 	});
+
+	mainWindow.maximize();
+
+	// mainWindow.setMenuBarVisibility(false);
+
+	// mainWindow.setBackgroundMaterial('acrylic');
 
 	if (env != 'production') {
 		mainWindow.loadURL('http://localhost:8080/');
